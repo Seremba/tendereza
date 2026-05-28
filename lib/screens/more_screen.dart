@@ -96,8 +96,7 @@ class MoreScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text('v1.0.0',
-                            style:
-                                TextStyle(fontSize: 13, color: dimColor)),
+                            style: TextStyle(fontSize: 13, color: dimColor)),
                         const SizedBox(height: 6),
                         Text(
                           'Sing, listen and grow in faith.',
@@ -124,9 +123,10 @@ class MoreScreen extends ConsumerWidget {
                         icon: Icons.brightness_6_outlined,
                         title: 'Theme',
                         subtitle: _themeLabel(ref),
-                        cs: cs,
-                        onTap: () =>
-                            _showThemeSheet(context, ref, cs),
+                        titleColor: titleColor,
+                        dimColor: dimColor,
+                        borderColor: borderColor,
+                        onTap: () => _showThemeSheet(context, ref, cs),
                       ),
                     ],
                   ),
@@ -141,7 +141,9 @@ class MoreScreen extends ConsumerWidget {
                       _SettingsRow(
                         icon: Icons.privacy_tip_outlined,
                         title: 'Privacy Policy',
-                        cs: cs,
+                        titleColor: titleColor,
+                        dimColor: dimColor,
+                        borderColor: borderColor,
                         onTap: () => _showPrivacyPolicy(context, cs),
                       ),
                     ],
@@ -157,7 +159,9 @@ class MoreScreen extends ConsumerWidget {
                       _SettingsRow(
                         icon: Icons.share_outlined,
                         title: 'Share the App',
-                        cs: cs,
+                        titleColor: titleColor,
+                        dimColor: dimColor,
+                        borderColor: borderColor,
                         onTap: () => Share.share(
                           'Try Tendereza — the SDA Hymnal app in Luganda & English! https://play.google.com/store/apps/details?id=com.sericklabs.tendereza',
                           subject: 'Tendereza — SDA Hymnal',
@@ -167,7 +171,9 @@ class MoreScreen extends ConsumerWidget {
                       _SettingsRow(
                         icon: Icons.star_outline,
                         title: 'Rate the App',
-                        cs: cs,
+                        titleColor: titleColor,
+                        dimColor: dimColor,
+                        borderColor: borderColor,
                         onTap: () {
                           // TODO: open Play Store rating when live
                         },
@@ -201,7 +207,7 @@ class MoreScreen extends ConsumerWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
-                            color: dimColor.withValues(alpha: 0.7),
+                            color: dimColor.withValues(alpha: 0.8),
                             height: 1.6,
                           ),
                         ),
@@ -229,8 +235,7 @@ class MoreScreen extends ConsumerWidget {
     };
   }
 
-  void _showThemeSheet(
-      BuildContext context, WidgetRef ref, ColorScheme cs) {
+  void _showThemeSheet(BuildContext context, WidgetRef ref, ColorScheme cs) {
     showModalBottomSheet(
       context: context,
       backgroundColor: cs.surface,
@@ -280,7 +285,7 @@ class _SectionLabel extends StatelessWidget {
         label.toUpperCase(),
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color: dimColor,
           letterSpacing: 1.4,
         ),
@@ -314,18 +319,22 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-// ── Settings row ──
+// ── Settings row — all colors explicit, no cs.outline ──
 class _SettingsRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
-  final ColorScheme cs;
+  final Color titleColor;
+  final Color dimColor;
+  final Color borderColor;
   final VoidCallback onTap;
 
   const _SettingsRow({
     required this.icon,
     required this.title,
-    required this.cs,
+    required this.titleColor,
+    required this.dimColor,
+    required this.borderColor,
     required this.onTap,
     this.subtitle,
   });
@@ -339,7 +348,7 @@ class _SettingsRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: cs.outline),
+            Icon(icon, size: 20, color: dimColor),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -350,19 +359,18 @@ class _SettingsRow extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: cs.onSurface,
+                      color: titleColor,
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(subtitle!,
-                        style:
-                            TextStyle(fontSize: 12, color: cs.outline)),
+                        style: TextStyle(fontSize: 12, color: dimColor)),
                   ],
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: 20, color: cs.outline),
+            Icon(Icons.chevron_right, size: 20, color: dimColor),
           ],
         ),
       ),
@@ -397,7 +405,7 @@ class _ThemeSheet extends ConsumerWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: cs.onSurface.withValues(alpha: 0.6),
+              color: cs.onSurface.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -437,7 +445,9 @@ class _ThemeSheet extends ConsumerWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? cs.primary : cs.outline,
+                          color: isSelected
+                              ? cs.primary
+                              : cs.onSurface.withValues(alpha: 0.4),
                           width: 2,
                         ),
                       ),
@@ -488,7 +498,7 @@ class _DonateSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: cs.onSurface.withValues(alpha: 0.6),
+                  color: cs.onSurface.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -506,8 +516,10 @@ class _DonateSheet extends StatelessWidget {
                 'If it has been a blessing to you, '
                 'consider supporting its development.',
                 textAlign: TextAlign.center,
-                style:
-                    TextStyle(fontSize: 14, color: cs.onSurface.withValues(alpha: 0.6), height: 1.6),
+                style: TextStyle(
+                    fontSize: 14,
+                    color: cs.onSurface.withValues(alpha: 0.75),
+                    height: 1.6),
               ),
               const SizedBox(height: 24),
               _DonateOption(
@@ -607,7 +619,7 @@ class _PrivacyPolicySheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: cs.onSurface.withValues(alpha: 0.6),
+                color: cs.onSurface.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -683,7 +695,9 @@ class _PolicySection extends StatelessWidget {
           const SizedBox(height: 6),
           Text(body,
               style: TextStyle(
-                  fontSize: 14, color: cs.onSurface.withValues(alpha: 0.6), height: 1.6)),
+                  fontSize: 14,
+                  color: cs.onSurface.withValues(alpha: 0.75),
+                  height: 1.6)),
         ],
       ),
     );
