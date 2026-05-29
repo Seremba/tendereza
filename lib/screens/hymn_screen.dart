@@ -64,26 +64,31 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     if (targetKeys == null || targetIndex >= targetKeys.length) return;
     if (scrollCtrl == null) return;
 
-    // Get the render object of the target verse
+    // Step 1: jump to top so all items are laid out
+    scrollCtrl.jumpTo(0);
+    if (targetIndex == 0) return;
+
+    // Step 2: wait one frame for layout
+    await WidgetsBinding.instance.endOfFrame;
+
     final ctx = targetKeys[targetIndex].currentContext;
     if (ctx == null || !ctx.mounted) return;
 
     final renderObj = ctx.findRenderObject() as RenderBox?;
     if (renderObj == null) return;
 
-    // Calculate absolute position of the target verse in the scroll view
     final scrollBox = scrollCtrl.position.context.storageContext
         .findRenderObject() as RenderBox?;
     if (scrollBox == null) return;
 
-    final itemPosition =
+    final itemOffset =
         renderObj.localToGlobal(Offset.zero, ancestor: scrollBox).dy;
-    final target = (scrollCtrl.offset + itemPosition - 20)
-        .clamp(0.0, scrollCtrl.position.maxScrollExtent);
+    final target =
+        (itemOffset - 20).clamp(0.0, scrollCtrl.position.maxScrollExtent);
 
     await scrollCtrl.animateTo(
       target,
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
@@ -104,8 +109,33 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       sb.writeln(v.lines);
       sb.writeln();
     }
-    sb.writeln('Shared from SDA Hymnal');
+    sb.writeln('Shared from Tendereza — SDA Hymnal');
     Share.share(sb.toString(), subject: '${hymn.number}. ${hymn.title}');
+  }
+
+  void _showHistory(BuildContext context, Hymn hymn) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: cs.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _HistorySheet(hymn: hymn),
+    );
+  }
+
+  void _showAudioComingSoon(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cs.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const _AudioComingSoonSheet(),
+    );
   }
 
   @override
@@ -120,13 +150,10 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
         ? ref.watch(englishHymnsProvider)
         : ref.watch(lugandaHymnsProvider);
 
-    // All colors from theme — no hardcoding
     final bg = Theme.of(context).scaffoldBackgroundColor;
     final titleColor = cs.onSurface;
     final dimColor = cs.onSurface.withValues(alpha: 0.5);
     final surfaceColor = cs.surface;
-
-    // Inactive chip colors — just subtle surface
     final badgeBg = cs.onSurface.withValues(alpha: 0.1);
     final badgeFg = cs.onSurface.withValues(alpha: 0.6);
 
@@ -138,8 +165,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       error: (e, _) => Scaffold(
         backgroundColor: bg,
         body: Center(
-          child: Text('Error: $e', style: TextStyle(color: dimColor)),
-        ),
+            child: Text('Error: $e', style: TextStyle(color: dimColor))),
       ),
       data: (hymns) {
         final sorted = [...hymns]
@@ -160,6 +186,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
         final activeVerse = _activeVerseByPage[_currentIndex] ?? 0;
         final isFirst = _currentIndex == 0;
         final isLast = _currentIndex == sorted.length - 1;
+        final hasHistory = currentHymn.history != null;
 
         return Scaffold(
           backgroundColor: bg,
@@ -168,8 +195,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
               children: [
                 // ── Top bar ──
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
                   child: Row(
                     children: [
                       _IconBtn(
@@ -185,8 +212,21 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                             _showReadingSettings(context, ref, appTheme),
                       ),
                       const SizedBox(width: 8),
+                      // ── Scroll / History icon ──
                       _IconBtn(
-                        icon: isFav ? Icons.favorite : Icons.favorite_border,
+                        icon: Icons.history_edu_outlined,
+                        color: hasHistory ? accent : dimColor,
+                        onTap: () {
+                          if (hasHistory) {
+                            _showHistory(context, currentHymn);
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _IconBtn(
+                        icon: isFav
+                            ? Icons.favorite
+                            : Icons.favorite_border,
                         color: isFav ? accent : dimColor,
                         onTap: () => ref
                             .read(favouritesProvider.notifier)
@@ -233,7 +273,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                         const SizedBox(height: 6),
                         RichText(
                           text: TextSpan(
-                            style: TextStyle(fontSize: 13, color: dimColor),
+                            style:
+                                TextStyle(fontSize: 13, color: dimColor),
                             children: [
                               const TextSpan(text: 'Doh is '),
                               TextSpan(
@@ -274,7 +315,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                       final scrollCtrl = _scrollControllerFor(pageIndex);
                       return ListView.builder(
                         controller: scrollCtrl,
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                        padding:
+                            const EdgeInsets.fromLTRB(20, 12, 20, 40),
                         itemCount: hymn.verses.length,
                         itemBuilder: (_, i) => VerseDisplay(
                           key: verseKeys[i],
@@ -286,53 +328,84 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                   ),
                 ),
 
-                // ── Prev / Next bar ──
+                // ── Prev / Next bar + Audio play button ──
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: surfaceColor,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Row(
-                      children: [
-                        _NavArrow(
-                          icon: Icons.chevron_left,
-                          enabled: !isFirst,
-                          accent: accent,
-                          dimColor: dimColor,
-                          onTap: () => _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            lang == 'lg'
-                                ? 'Oluyimba ${currentHymn.number}'
-                                : 'Hymn ${currentHymn.number}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: titleColor,
+                  child: Row(
+                    children: [
+                      // Audio play button
+                      GestureDetector(
+                        onTap: () => _showAudioComingSoon(context),
+                        child: Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: surfaceColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: accent.withValues(alpha: 0.3),
+                              width: 1,
                             ),
                           ),
-                        ),
-                        _NavArrow(
-                          icon: Icons.chevron_right,
-                          enabled: !isLast,
-                          accent: accent,
-                          dimColor: dimColor,
-                          onTap: () => _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: dimColor,
+                            size: 24,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Nav pill
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: surfaceColor,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 6),
+                          child: Row(
+                            children: [
+                              _NavArrow(
+                                icon: Icons.chevron_left,
+                                enabled: !isFirst,
+                                accent: accent,
+                                dimColor: dimColor,
+                                onTap: () => _pageController.previousPage(
+                                  duration:
+                                      const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  lang == 'lg'
+                                      ? 'Oluyimba ${currentHymn.number}'
+                                      : 'Hymn ${currentHymn.number}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: titleColor,
+                                  ),
+                                ),
+                              ),
+                              _NavArrow(
+                                icon: Icons.chevron_right,
+                                enabled: !isLast,
+                                accent: accent,
+                                dimColor: dimColor,
+                                onTap: () => _pageController.nextPage(
+                                  duration:
+                                      const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -444,9 +517,7 @@ class _VerseNavBar extends StatelessWidget {
         itemCount: verses.length,
         itemBuilder: (_, i) {
           final isActive = i == activeIndex;
-          final label = verses[i].label;
-          final shortLabel = _shortLabel(label);
-
+          final shortLabel = _shortLabel(verses[i].label);
           return GestureDetector(
             onTap: () => onTap(i),
             child: AnimatedContainer(
@@ -476,6 +547,183 @@ class _VerseNavBar extends StatelessWidget {
   }
 }
 
+// ── History Sheet ──
+class _HistorySheet extends StatelessWidget {
+  final Hymn hymn;
+  const _HistorySheet({required this.hymn});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final h = hymn.history!;
+    final titleColor = cs.onSurface;
+    final dimColor = cs.onSurface.withValues(alpha: 0.75);
+    final accent = cs.primary;
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      maxChildSize: 0.92,
+      builder: (_, scrollController) => SingleChildScrollView(
+        controller: scrollController,
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: cs.onSurface.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title
+            Text(
+              'Song History',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: titleColor),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Hymn ${hymn.number} · ${hymn.title}',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: accent,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 16),
+
+            // Meta pills
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (h.year != null)
+                  _MetaPill(label: '📅 ${h.year}', accent: accent),
+                if (h.author != null)
+                  _MetaPill(label: '✍️ ${h.author}', accent: accent),
+                if (h.composer != null)
+                  _MetaPill(label: '🎵 ${h.composer}', accent: accent),
+                if (h.tune != null)
+                  _MetaPill(label: '🎼 ${h.tune}', accent: accent),
+              ],
+            ),
+
+            if (h.story != null) ...[
+              const SizedBox(height: 20),
+              Text(
+                h.story!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: dimColor,
+                  height: 1.75,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaPill extends StatelessWidget {
+  final String label;
+  final Color accent;
+  const _MetaPill({required this.label, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accent.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+            fontSize: 12,
+            color: accent,
+            fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+// ── Audio Coming Soon Sheet ──
+class _AudioComingSoonSheet extends StatelessWidget {
+  const _AudioComingSoonSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: cs.onSurface.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 28),
+          Container(
+            width: 64, height: 64,
+            decoration: BoxDecoration(
+              color: cs.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: cs.primary.withValues(alpha: 0.3), width: 1.5),
+            ),
+            child: Icon(
+              Icons.headphones_outlined,
+              color: cs.primary,
+              size: 30,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Audio Coming Soon',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We are working on bringing hymn audio to Tendereza. Stay tuned!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: cs.onSurface.withValues(alpha: 0.65),
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Reading Settings Sheet ──
 class _ReadingSettingsSheet extends ConsumerWidget {
   final TenderezaTheme appTheme;
@@ -484,41 +732,11 @@ class _ReadingSettingsSheet extends ConsumerWidget {
   static const _fonts = ['Lato', 'Poppins', 'Nunito', 'Gentium Plus'];
 
   static const _themes = [
-    (
-      TenderezaTheme.light,
-      'Light',
-      Color(0xFFFFFFFF),
-      Color(0xFF1A1A1A),
-      Color(0xFF1D9E75)
-    ),
-    (
-      TenderezaTheme.sepia,
-      'Sepia',
-      Color(0xFFF5ECD7),
-      Color(0xFF2C1810),
-      Color(0xFF1D9E75)
-    ),
-    (
-      TenderezaTheme.dark,
-      'Dark',
-      Color(0xFF042C53),
-      Color(0xFFB5D4F4),
-      Color(0xFF1D9E75)
-    ),
-    (
-      TenderezaTheme.black,
-      'Black',
-      Color(0xFF000000),
-      Color(0xFFF0F0F0),
-      Color(0xFF1D9E75)
-    ),
-    (
-      TenderezaTheme.gold,
-      'Gold',
-      Color(0xFF1C1208),
-      Color(0xFFF5ECD7),
-      Color(0xFFC8922A)
-    ),
+    (TenderezaTheme.light, 'Light',  Color(0xFFFFFFFF), Color(0xFF1A1A1A), Color(0xFF1D9E75)),
+    (TenderezaTheme.sepia, 'Sepia',  Color(0xFFF5ECD7), Color(0xFF2C1810), Color(0xFF1D9E75)),
+    (TenderezaTheme.dark,  'Dark',   Color(0xFF042C53), Color(0xFFB5D4F4), Color(0xFF1D9E75)),
+    (TenderezaTheme.black, 'Black',  Color(0xFF000000), Color(0xFFF0F0F0), Color(0xFF1D9E75)),
+    (TenderezaTheme.gold,  'Gold',   Color(0xFF1C1208), Color(0xFFF5ECD7), Color(0xFFC8922A)),
   ];
 
   @override
@@ -544,11 +762,9 @@ class _ReadingSettingsSheet extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle
             Center(
               child: Container(
-                width: 40,
-                height: 4,
+                width: 40, height: 4,
                 decoration: BoxDecoration(
                   color: borderColor,
                   borderRadius: BorderRadius.circular(2),
@@ -643,8 +859,9 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                       font,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.normal,
                         color: isSelected ? accent : textColor,
                       ),
                     ),
@@ -698,8 +915,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              width: 32,
-                              height: 3,
+                              width: 32, height: 3,
                               decoration: BoxDecoration(
                                 color: t.$4.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(2),
@@ -707,8 +923,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Container(
-                              width: 24,
-                              height: 3,
+                              width: 24, height: 3,
                               decoration: BoxDecoration(
                                 color: t.$4.withValues(alpha: 0.4),
                                 borderRadius: BorderRadius.circular(2),
@@ -716,8 +931,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                             ),
                             const SizedBox(height: 8),
                             Container(
-                              width: 16,
-                              height: 16,
+                              width: 16, height: 16,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
@@ -729,8 +943,7 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                               child: isSelected
                                   ? Center(
                                       child: Container(
-                                        width: 8,
-                                        height: 8,
+                                        width: 8, height: 8,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: t.$5,
@@ -747,8 +960,9 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                         t.$2,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.normal,
                           color: isSelected ? accent : dimColor,
                         ),
                       ),

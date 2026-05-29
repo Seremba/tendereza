@@ -4,6 +4,13 @@
     "key": "E",
     "title": "Holy, Holy, Holy",
     "first_line": "Holy, holy, holy! Lord God Almighty!",
+    "history": {
+      "year": 1826,
+      "author": "Reginald Heber",
+      "composer": "John B. Dykes",
+      "tune": "Nicaea",
+      "story": "Written by Bishop Reginald Heber in 1826 for Trinity Sunday, this hymn was inspired by the vision in Revelation 4:8 where four living creatures cry 'Holy, holy, holy is the Lord God Almighty, who was, and is, and is to come.'\n\nHeber wrote it as part of a collection of hymns for the Church of England calendar, but he died in 1826 before the collection was published.\n\nThe tune 'Nicaea' was composed by John Bacchus Dykes in 1861, named after the Council of Nicaea (325 AD) where the doctrine of the Trinity was formally affirmed — fitting for a hymn celebrating the triune God."
+    },
     "verses": [
       {
         "label": "1",

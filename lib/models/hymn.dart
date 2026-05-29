@@ -9,12 +9,45 @@ class Verse {
   Map<String, dynamic> toJson() => {'label': label, 'lines': lines};
 }
 
+class HymnHistory {
+  final int? year;
+  final String? author;
+  final String? composer;
+  final String? tune;
+  final String? story;
+
+  const HymnHistory({
+    this.year,
+    this.author,
+    this.composer,
+    this.tune,
+    this.story,
+  });
+
+  factory HymnHistory.fromJson(Map<String, dynamic> json) => HymnHistory(
+        year: json['year'] as int?,
+        author: json['author'] as String?,
+        composer: json['composer'] as String?,
+        tune: json['tune'] as String?,
+        story: json['story'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        if (year != null) 'year': year,
+        if (author != null) 'author': author,
+        if (composer != null) 'composer': composer,
+        if (tune != null) 'tune': tune,
+        if (story != null) 'story': story,
+      };
+}
+
 class Hymn {
-  final dynamic number; // int or String (e.g. "12a")
-  final String? key;    // musical key e.g. "G", "Ab", "Eb"
+  final dynamic number;
+  final String? key;
   final String title;
   final String firstLine;
   final List<Verse> verses;
+  final HymnHistory? history;
 
   const Hymn({
     required this.number,
@@ -22,6 +55,7 @@ class Hymn {
     required this.title,
     required this.firstLine,
     required this.verses,
+    this.history,
   });
 
   factory Hymn.fromJson(Map<String, dynamic> json) => Hymn(
@@ -32,6 +66,9 @@ class Hymn {
         verses: (json['verses'] as List)
             .map((v) => Verse.fromJson(v as Map<String, dynamic>))
             .toList(),
+        history: json['history'] != null
+            ? HymnHistory.fromJson(json['history'] as Map<String, dynamic>)
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -40,5 +77,6 @@ class Hymn {
         'title': title,
         'first_line': firstLine,
         'verses': verses.map((v) => v.toJson()).toList(),
+        if (history != null) 'history': history!.toJson(),
       };
 }
