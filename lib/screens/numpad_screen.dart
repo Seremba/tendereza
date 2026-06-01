@@ -65,79 +65,84 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
 
     return Column(
       children: [
-        // ── Results list ──
-        Expanded(
-          child: hymnsAsync.when(
-            loading: () =>
-                Center(child: CircularProgressIndicator(color: cs.primary)),
-            error: (e, _) => Center(child: Text('Error: $e')),
-            data: (hymns) {
-              if (_input.isEmpty) return const SizedBox.shrink();
-              final results = _filtered(hymns);
-              if (results.isEmpty) {
-                return Center(
-                  child: Text(
-                    lang == 'lg'
-                        ? 'Tewali luyimba lwa #$_input'
-                        : 'No hymn found for #$_input',
-                    style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.45)),
+        // ── Results list (only visible when typing) ──
+        if (_input.isNotEmpty)
+          Expanded(
+            child: hymnsAsync.when(
+              loading: () =>
+                  Center(child: CircularProgressIndicator(color: cs.primary)),
+              error: (e, _) => Center(child: Text('Error: $e')),
+              data: (hymns) {
+                final results = _filtered(hymns);
+                if (results.isEmpty) {
+                  return Center(
+                    child: Text(
+                      lang == 'lg'
+                          ? 'Tewali luyimba lwa #$_input'
+                          : 'No hymn found for #$_input',
+                      style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.45)),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.only(top: 4, bottom: 8),
+                  itemCount: results.length,
+                  itemBuilder: (_, i) => HymnCard(
+                    hymn: results[i],
+                    isFavourite: favourites.contains(results[i].number),
+                    onTap: () => _openHymn(results[i].number),
+                    onFavouriteTap: () => ref
+                        .read(favouritesProvider.notifier)
+                        .toggle(results[i].number),
                   ),
                 );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.only(top: 4, bottom: 8),
-                itemCount: results.length,
-                itemBuilder: (_, i) => HymnCard(
-                  hymn: results[i],
-                  isFavourite: favourites.contains(results[i].number),
-                  onTap: () => _openHymn(results[i].number),
-                  onFavouriteTap: () => ref
-                      .read(favouritesProvider.notifier)
-                      .toggle(results[i].number),
-                ),
-              );
-            },
-          ),
-        ),
-
-        // ── Number display ──
-        Flexible(
-          fit: FlexFit.loose,
-          child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: cs.surface,
-            border: Border(
-              top: BorderSide(
-                color: cs.primary.withValues(alpha: 0.15),
-                width: 1,
-              ),
+              },
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 150),
-            child: Text(
-              _input,
-              key: ValueKey(_input),
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 8,
-                color: cs.primary,
-              ),
-            ),
-          ),
-        ),
-        ),
 
-        // ── Numpad ──
-        Container(
+        // ── Numpad (centered when no input) ──
+        Expanded(
+          flex: 1,
+          child: Center(
+            child: Container(
           color: bg,
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
+              // ── Number display above keys ──
+              SizedBox(
+                height: 64,
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 150),
+                    child: _input.isEmpty
+                        ? Text(
+                            lang == 'lg'
+                                ? 'Tandika ennamba...'
+                                : 'Type a number...',
+                            key: const ValueKey('hint'),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: cs.onSurface.withValues(alpha: 0.25),
+                              letterSpacing: 0.5,
+                            ),
+                          )
+                        : Text(
+                            _input,
+                            key: ValueKey(_input),
+                            style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 10,
+                              color: cs.primary,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               for (final row in [
                 ['1', '2', '3'],
                 ['4', '5', '6'],
@@ -200,6 +205,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                 ],
               ),
             ],
+          ),
+            ),
           ),
         ),
       ],

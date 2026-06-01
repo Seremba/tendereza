@@ -5,6 +5,9 @@ import '../providers/providers.dart';
 import '../widgets/hymn_card.dart';
 import 'hymn_screen.dart';
 
+// ── Browse tab enum ──
+enum _BrowseTab { all, hymns, children }
+
 class BrowseScreen extends ConsumerStatefulWidget {
   const BrowseScreen({super.key});
 
@@ -15,6 +18,7 @@ class BrowseScreen extends ConsumerStatefulWidget {
 class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
+  _BrowseTab _activeTab = _BrowseTab.all;
 
   @override
   void initState() {
@@ -37,6 +41,17 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     );
   }
 
+  List<Hymn> _applyTabFilter(List<Hymn> hymns) {
+    switch (_activeTab) {
+      case _BrowseTab.hymns:
+        return hymns.where((h) => !h.isChildrenSong).toList();
+      case _BrowseTab.children:
+        return hymns.where((h) => h.isChildrenSong).toList();
+      case _BrowseTab.all:
+        return hymns;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -47,7 +62,6 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     final lang = ref.watch(languageProvider);
     final isSearching = query.isNotEmpty;
 
-    final searchBg = cs.surface;
     final borderColor = cs.outline;
     final dimColor = cs.onSurface.withValues(alpha: 0.7);
     final textColor = cs.onSurface;
@@ -57,7 +71,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
       children: [
         // ── Search bar ──
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
@@ -112,11 +126,21 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
             ),
           ),
+        ),
+
+        // ── Tab bar ──
+        _BrowseTabBar(
+          active: _activeTab,
+          lang: lang,
+          accent: accent,
+          dimColor: dimColor,
+          borderColor: borderColor,
+          onSelect: (tab) => setState(() => _activeTab = tab),
         ),
 
         // ── Hymn list ──
@@ -128,7 +152,9 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             error: (e, _) => Center(
               child: Text('Error: $e', style: TextStyle(color: dimColor)),
             ),
-            data: (hymns) {
+            data: (allHymns) {
+              final hymns = _applyTabFilter(allHymns);
+
               if (hymns.isEmpty) {
                 return Center(
                   child: Column(
@@ -154,7 +180,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                   if (isSearching && hymns.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                         child: Row(
                           children: [
                             Container(
@@ -179,26 +205,31 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                         ),
                       ),
                     ),
-                  if (!isSearching && recentNums.isNotEmpty)
+
+                  // ── Recently viewed ──
+                  if (!isSearching &&
+                      recentNums.isNotEmpty &&
+                      _activeTab != _BrowseTab.children)
                     SliverToBoxAdapter(
                       child: _RecentlyViewedSection(
                         recentNums: recentNums,
-                        hymns: hymns,
+                        hymns: allHymns,
                         lang: lang,
                         cs: cs,
                         onTap: _openHymn,
-                        onClear: () => ref
-                            .read(recentlyViewedProvider.notifier)
-                            .clear(),
+                        onClear: () =>
+                            ref.read(recentlyViewedProvider.notifier).clear(),
                       ),
                     ),
 
-                  if (!isSearching && recentNums.isNotEmpty)
+                  if (!isSearching &&
+                      recentNums.isNotEmpty &&
+                      _activeTab != _BrowseTab.children)
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
                         child: Text(
-                          lang == 'lg' ? 'EMIYIMBA GYONNA' : 'ALL HYMNS',
+                          _sectionLabel(lang, _activeTab),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -231,6 +262,87 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  String _sectionLabel(String lang, _BrowseTab tab) {
+    if (lang == 'lg') {
+      return tab == _BrowseTab.children
+          ? 'ENNYIMBA Z\'ABAANA'
+          : 'EMIYIMBA GYONNA';
+    }
+    return tab == _BrowseTab.children ? 'CHILDREN\'S SONGS' : 'ALL HYMNS';
+  }
+}
+
+// ── Tab bar widget ──
+class _BrowseTabBar extends StatelessWidget {
+  final _BrowseTab active;
+  final String lang;
+  final Color accent;
+  final Color dimColor;
+  final Color borderColor;
+  final void Function(_BrowseTab) onSelect;
+
+  const _BrowseTabBar({
+    required this.active,
+    required this.lang,
+    required this.accent,
+    required this.dimColor,
+    required this.borderColor,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tabs = [
+      (tab: _BrowseTab.all, label: lang == 'lg' ? 'Byonna' : 'All'),
+      (tab: _BrowseTab.hymns, label: lang == 'lg' ? 'Emiyimba (1–250)' : 'Hymns (1–250)'),
+      (tab: _BrowseTab.children, label: lang == 'lg' ? 'Ab\'aana' : 'Children\'s'),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: borderColor.withValues(alpha: 0.4), width: 0.8),
+        ),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: tabs.map((t) {
+            final isActive = active == t.tab;
+            return GestureDetector(
+              onTap: () => onSelect(t.tab),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                margin: const EdgeInsets.only(right: 20),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isActive ? accent : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  t.label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive
+                        ? accent
+                        : dimColor.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }
@@ -282,8 +394,8 @@ class _RecentlyViewedSection extends StatelessWidget {
               GestureDetector(
                 onTap: onClear,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Text(
                     lang == 'lg' ? 'Sazamu' : 'Clear',
                     style: TextStyle(fontSize: 11, color: cs.primary),

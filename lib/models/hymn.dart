@@ -58,6 +58,10 @@ class Hymn {
     this.history,
   });
 
+  // Returns true once children's songs JSON is loaded (number will be e.g. "C1")
+  bool get isChildrenSong =>
+      number is String && number.toString().startsWith('C');
+
   factory Hymn.fromJson(Map<String, dynamic> json) => Hymn(
         number: json['number'],
         key: json['key'] as String?,
