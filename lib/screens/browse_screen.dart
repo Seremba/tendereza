@@ -47,7 +47,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     final lang = ref.watch(languageProvider);
     final isSearching = query.isNotEmpty;
 
-    final searchBg = cs.surfaceContainerHighest;
+    final searchBg = cs.surface;
     final borderColor = cs.outline;
     final dimColor = cs.onSurface.withValues(alpha: 0.7);
     final textColor = cs.onSurface;
@@ -58,14 +58,21 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
         // ── Search bar ──
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: searchBg,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: borderColor, width: 0.8),
+              color: _searchFocusNode.hasFocus
+                  ? accent.withValues(alpha: 0.08)
+                  : cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _searchFocusNode.hasFocus ? accent : borderColor,
+                width: _searchFocusNode.hasFocus ? 1.5 : 0.8,
+              ),
             ),
             child: TextField(
               controller: _searchController,
+              focusNode: _searchFocusNode,
               onChanged: (v) =>
                   ref.read(searchQueryProvider.notifier).state = v,
               style: TextStyle(color: textColor, fontSize: 14),
@@ -73,8 +80,15 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 hintText: lang == 'lg'
                     ? 'Noonya oluyimba...'
                     : 'Search hymns…',
-                hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.65), fontSize: 13),
-                prefixIcon: Icon(Icons.search, color: cs.onSurface.withValues(alpha: 0.65), size: 20),
+                hintStyle: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.45), fontSize: 13),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: _searchFocusNode.hasFocus
+                      ? accent
+                      : cs.onSurface.withValues(alpha: 0.45),
+                  size: 20,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: Icon(Icons.clear, color: dimColor, size: 18),
@@ -84,9 +98,20 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                         },
                       )
                     : null,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 12),
               ),
