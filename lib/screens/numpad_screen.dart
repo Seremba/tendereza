@@ -101,6 +101,9 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
             ),
           ),
 
+        // ── Push numpad to bottom when no results ──
+        if (_input.isEmpty) const Spacer(),
+
         // ── Numpad pinned at bottom ──
         Container(
           color: bg,
