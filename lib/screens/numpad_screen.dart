@@ -101,11 +101,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
             ),
           ),
 
-        // ── Numpad (centered when no input) ──
-        Expanded(
-          flex: 1,
-          child: Center(
-            child: Container(
+        // ── Numpad pinned at bottom ──
+        Container(
           color: bg,
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
           child: Column(
@@ -205,8 +202,6 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                 ],
               ),
             ],
-          ),
-            ),
           ),
         ),
       ],
