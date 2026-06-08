@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import '../app.dart';
 import '../models/hymn.dart';
 import '../providers/providers.dart';
 import '../widgets/language_toggle.dart';
@@ -23,8 +23,21 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   final Map<int, ScrollController> _scrollControllers = {};
   final Map<int, List<GlobalKey>> _verseKeysByPage = {};
 
+  // ── Font size buttons visibility ──
+  bool _showFontButtons = true;
+  Timer? _fontButtonTimer;
+
+  void _showFontButtonsTemporarily() {
+    setState(() => _showFontButtons = true);
+    _fontButtonTimer?.cancel();
+    _fontButtonTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showFontButtons = false);
+    });
+  }
+
   @override
   void dispose() {
+    _fontButtonTimer?.cancel();
     _pageController.dispose();
     for (final sc in _scrollControllers.values) {
       sc.dispose();
@@ -143,7 +156,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     final lang = ref.watch(languageProvider);
     final fontSize = ref.watch(fontSizeProvider);
     final favourites = ref.watch(favouritesProvider);
-    final appTheme = ref.watch(appThemeProvider);
     final cs = Theme.of(context).colorScheme;
     final accent = cs.primary;
     final hymnsAsync = lang == 'en'
@@ -188,10 +200,20 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
         final isLast = _currentIndex == sorted.length - 1;
         final hasHistory = currentHymn.history != null;
 
+        // Start font button timer on first build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _showFontButtons) _showFontButtonsTemporarily();
+        });
+
         return Scaffold(
           backgroundColor: bg,
-          body: SafeArea(
-            child: Column(
+          body: GestureDetector(
+            onTap: _showFontButtonsTemporarily,
+            behavior: HitTestBehavior.translucent,
+            child: Stack(
+              children: [
+                SafeArea(
+                  child: Column(
               children: [
                 // ── Top bar ──
                 Padding(
@@ -205,24 +227,15 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                         onTap: () => Navigator.of(context).pop(),
                       ),
                       const Spacer(),
-                      _IconBtn(
-                        icon: Icons.text_fields,
-                        color: dimColor,
-                        onTap: () =>
-                            _showReadingSettings(context, ref, appTheme),
-                      ),
-                      const SizedBox(width: 8),
-                      // ── Scroll / History icon ──
+                      // ── History icon ──
                       _IconBtn(
                         icon: Icons.history_edu_outlined,
                         color: hasHistory ? accent : dimColor,
                         onTap: () {
-                          if (hasHistory) {
-                            _showHistory(context, currentHymn);
-                          }
+                          if (hasHistory) _showHistory(context, currentHymn);
                         },
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
                       _IconBtn(
                         icon: isFav
                             ? Icons.favorite
@@ -232,13 +245,13 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                             .read(favouritesProvider.notifier)
                             .toggle(currentHymn.number),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
                       _IconBtn(
                         icon: Icons.share_outlined,
                         color: dimColor,
                         onTap: () => _share(currentHymn, lang),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
                       const LanguageToggle(),
                     ],
                   ),
@@ -411,22 +424,46 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
               ],
             ),
           ),
+
+                // ── Floating A+ / A- buttons ──
+                Positioned(
+                  right: 12,
+                  bottom: 100,
+                  child: AnimatedOpacity(
+                    opacity: _showFontButtons ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 400),
+                    child: Column(
+                      children: [
+                        _FontSizeButton(
+                          label: 'A+',
+                          onTap: () {
+                            ref.read(fontSizeProvider.notifier).increase();
+                            _showFontButtonsTemporarily();
+                          },
+                          enabled: ref.watch(fontSizeProvider) <
+                              FontSizeNotifier.max,
+                          cs: cs,
+                        ),
+                        const SizedBox(height: 8),
+                        _FontSizeButton(
+                          label: 'A−',
+                          onTap: () {
+                            ref.read(fontSizeProvider.notifier).decrease();
+                            _showFontButtonsTemporarily();
+                          },
+                          enabled: ref.watch(fontSizeProvider) >
+                              FontSizeNotifier.min,
+                          cs: cs,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
-    );
-  }
-
-  void _showReadingSettings(
-      BuildContext context, WidgetRef ref, TenderezaTheme appTheme) {
-    final surfaceColor = Theme.of(context).colorScheme.surface;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: surfaceColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _ReadingSettingsSheet(appTheme: appTheme),
     );
   }
 }
@@ -542,6 +579,64 @@ class _VerseNavBar extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ── Floating font size button ──
+class _FontSizeButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  final bool enabled;
+  final ColorScheme cs;
+
+  const _FontSizeButton({
+    required this.label,
+    required this.onTap,
+    required this.enabled,
+    required this.cs,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: enabled
+              ? cs.primary
+              : cs.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: enabled
+                ? cs.primary
+                : cs.outline.withValues(alpha: 0.3),
+            width: 1,
+          ),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: enabled ? Colors.white : cs.onSurface.withValues(alpha: 0.3),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -719,261 +814,6 @@ class _AudioComingSoonSheet extends StatelessWidget {
             child: const Text('Got it'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Reading Settings Sheet ──
-class _ReadingSettingsSheet extends ConsumerWidget {
-  final TenderezaTheme appTheme;
-  const _ReadingSettingsSheet({required this.appTheme});
-
-  static const _fonts = ['Lato', 'Poppins', 'Nunito', 'Gentium Plus'];
-
-  static const _themes = [
-    (TenderezaTheme.light, 'Light',  Color(0xFFFFFFFF), Color(0xFF1A1A1A), Color(0xFF1D9E75)),
-    (TenderezaTheme.sepia, 'Sepia',  Color(0xFFF5ECD7), Color(0xFF2C1810), Color(0xFF1D9E75)),
-    (TenderezaTheme.dark,  'Dark',   Color(0xFF042C53), Color(0xFFB5D4F4), Color(0xFF1D9E75)),
-    (TenderezaTheme.black, 'Black',  Color(0xFF000000), Color(0xFFF0F0F0), Color(0xFF1D9E75)),
-    (TenderezaTheme.gold,  'Gold',   Color(0xFF1C1208), Color(0xFFF5ECD7), Color(0xFFC8922A)),
-  ];
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final fontSize = ref.watch(fontSizeProvider);
-    final fontSizeNotifier = ref.read(fontSizeProvider.notifier);
-    final fontFamily = ref.watch(fontFamilyProvider);
-    final currentTheme = ref.watch(appThemeProvider);
-    final cs = Theme.of(context).colorScheme;
-    final textColor = cs.onSurface;
-    final dimColor = cs.onSurface.withValues(alpha: 0.5);
-    final accent = cs.primary;
-    final surfaceColor = cs.surface;
-    final borderColor = cs.outline;
-
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.7,
-      maxChildSize: 0.95,
-      builder: (_, scrollController) => SingleChildScrollView(
-        controller: scrollController,
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: borderColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ── Text Size ──
-            Text('Text Size',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: textColor)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: fontSizeNotifier.decrease,
-                  child: Text('A−',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: fontSize > FontSizeNotifier.min
-                              ? accent
-                              : dimColor)),
-                ),
-                Expanded(
-                  child: Slider(
-                    value: fontSize,
-                    min: FontSizeNotifier.min,
-                    max: FontSizeNotifier.max,
-                    divisions: ((FontSizeNotifier.max - FontSizeNotifier.min) /
-                            FontSizeNotifier.step)
-                        .toInt(),
-                    activeColor: accent,
-                    inactiveColor: accent.withValues(alpha: 0.2),
-                    onChanged: (v) {
-                      final snapped = (v / FontSizeNotifier.step).round() *
-                          FontSizeNotifier.step.toDouble();
-                      fontSizeNotifier.setSize(snapped);
-                    },
-                  ),
-                ),
-                GestureDetector(
-                  onTap: fontSizeNotifier.increase,
-                  child: Text('A+',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: fontSize < FontSizeNotifier.max
-                              ? accent
-                              : dimColor)),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-            Divider(color: borderColor),
-            const SizedBox(height: 20),
-
-            // ── Typeface ──
-            Text('Typeface',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: textColor)),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: _fonts.map((font) {
-                final isSelected = fontFamily == font;
-                return GestureDetector(
-                  onTap: () =>
-                      ref.read(fontFamilyProvider.notifier).setFamily(font),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? accent.withValues(alpha: 0.12)
-                          : surfaceColor,
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                        color: isSelected ? accent : borderColor,
-                        width: isSelected ? 1.5 : 0.8,
-                      ),
-                    ),
-                    child: Text(
-                      font,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.normal,
-                        color: isSelected ? accent : textColor,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 24),
-            Divider(color: borderColor),
-            const SizedBox(height: 20),
-
-            // ── Theme ──
-            Text('Theme',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: textColor)),
-            const SizedBox(height: 14),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: _themes.map((t) {
-                final isSelected = currentTheme == t.$1;
-                return GestureDetector(
-                  onTap: () =>
-                      ref.read(appThemeProvider.notifier).setTheme(t.$1),
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 52,
-                        height: 68,
-                        decoration: BoxDecoration(
-                          color: t.$3,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? t.$5 : borderColor,
-                            width: isSelected ? 2.5 : 0.8,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: t.$5.withValues(alpha: 0.3),
-                                    blurRadius: 8,
-                                    spreadRadius: 1,
-                                  )
-                                ]
-                              : null,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 32, height: 3,
-                              decoration: BoxDecoration(
-                                color: t.$4.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              width: 24, height: 3,
-                              decoration: BoxDecoration(
-                                color: t.$4.withValues(alpha: 0.4),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: 16, height: 16,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: isSelected
-                                        ? t.$5
-                                        : t.$4.withValues(alpha: 0.4),
-                                    width: 1.5),
-                              ),
-                              child: isSelected
-                                  ? Center(
-                                      child: Container(
-                                        width: 8, height: 8,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: t.$5,
-                                        ),
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        t.$2,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.normal,
-                          color: isSelected ? accent : dimColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
       ),
     );
   }

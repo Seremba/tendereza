@@ -104,13 +104,13 @@ final languageProvider =
 class FontSizeNotifier extends Notifier<double> {
   static const _key = 'font_size';
   static const double min = 14;
-  static const double max = 26;
+  static const double max = 48;
   static const double step = 2;
 
   @override
   double build() {
     final prefs = ref.read(sharedPreferencesProvider);
-    return prefs.getDouble(_key) ?? 17.0;
+    return prefs.getDouble(_key) ?? 18.0;
   }
 
   void increase() => _set((state + step).clamp(min, max));
@@ -125,6 +125,20 @@ class FontSizeNotifier extends Notifier<double> {
 
 final fontSizeProvider =
     NotifierProvider<FontSizeNotifier, double>(FontSizeNotifier.new);
+
+// ─────────────────────────────────────────────
+// BRIGHTNESS  (session-only, not persisted)
+// ─────────────────────────────────────────────
+class BrightnessNotifier extends Notifier<double> {
+  @override
+  double build() => -1.0; // -1 = use system default
+
+  void setValue(double value) => state = value.clamp(0.1, 1.0);
+  void reset() => state = -1.0;
+}
+
+final brightnessProvider =
+    NotifierProvider<BrightnessNotifier, double>(BrightnessNotifier.new);
 
 // ─────────────────────────────────────────────
 // FAVOURITES
