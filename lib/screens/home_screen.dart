@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../app.dart';
 import '../providers/providers.dart';
@@ -17,8 +18,31 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
   int _tab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // Reset brightness to system default when app goes to background
+      ScreenBrightness().resetScreenBrightness();
+      ref.read(brightnessProvider.notifier).reset();
+    }
+  }
 
   void _showAppearanceSheet(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -135,7 +159,9 @@ class _AppearanceSheetState extends ConsumerState<_AppearanceSheet> {
       expand: false,
       initialChildSize: 0.72,
       maxChildSize: 0.95,
-      builder: (_, scrollController) => SingleChildScrollView(
+      builder: (_, scrollController) => Container(
+        color: cs.surface,
+        child: SingleChildScrollView(
         controller: scrollController,
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
         child: Column(
@@ -323,13 +349,7 @@ class _AppearanceSheetState extends ConsumerState<_AppearanceSheet> {
                     inactiveColor: accent.withValues(alpha: 0.2),
                     onChanged: (v) {
                       ref.read(brightnessProvider.notifier).setValue(v);
-                      // Set system brightness via channel
-                      SystemChrome.setSystemUIOverlayStyle(
-                        SystemUiOverlayStyle(
-                          statusBarBrightness:
-                              v > 0.5 ? Brightness.light : Brightness.dark,
-                        ),
-                      );
+                      ScreenBrightness().setScreenBrightness(v);
                     },
                   ),
                 ),
@@ -339,6 +359,7 @@ class _AppearanceSheetState extends ConsumerState<_AppearanceSheet> {
             ),
             const SizedBox(height: 4),
           ],
+        ),
         ),
       ),
     );
@@ -355,9 +376,10 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       label,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w700,
-        color: textColor,
+        letterSpacing: 1.2,
+        color: textColor.withValues(alpha: 0.85),
       ),
     );
   }

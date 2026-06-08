@@ -62,6 +62,7 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
         ? ref.watch(englishHymnsProvider)
         : ref.watch(lugandaHymnsProvider);
     final favourites = ref.watch(favouritesProvider);
+    final recentNums = ref.watch(recentlyViewedProvider);
 
     return Column(
       children: [
@@ -101,8 +102,63 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
             ),
           ),
 
-        // ── Push numpad to bottom when no results ──
-        if (_input.isEmpty) const Spacer(),
+        // ── Suggestions (recently viewed or defaults) ──
+        if (_input.isEmpty)
+          Expanded(
+            child: hymnsAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (hymns) {
+                final hymnMap = {
+                  for (final h in hymns) h.number.toString(): h
+                };
+
+                // Use recently viewed if available, else fall back to defaults
+                final defaultNums = [1, 51, 130, 224, 239];
+                final suggestedNums =
+                    recentNums.isNotEmpty ? recentNums.take(5).toList() : defaultNums.map((n) => n.toString()).toList();
+
+                final suggested = suggestedNums
+                    .map((n) => hymnMap[n.toString()])
+                    .whereType<Hymn>()
+                    .toList();
+
+                if (suggested.isEmpty) return const SizedBox.shrink();
+
+                final label = recentNums.isNotEmpty
+                    ? (lang == 'lg' ? 'BYALABIDDWA OLUVANNYUMA' : 'RECENTLY VIEWED')
+                    : (lang == 'lg' ? 'EMIYIMBA EYAZAALA' : 'POPULAR HYMNS');
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.4,
+                          color: cs.onSurface.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                    ...suggested.map(
+                      (h) => HymnCard(
+                        hymn: h,
+                        isFavourite: favourites.contains(h.number.toString()),
+                        onTap: () => _openHymn(h.number),
+                        onFavouriteTap: () => ref
+                            .read(favouritesProvider.notifier)
+                            .toggle(h.number),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
 
         // ── Numpad pinned at bottom ──
         Container(
