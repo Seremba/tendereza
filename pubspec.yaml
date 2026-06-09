@@ -25,6 +25,8 @@ flutter:
   assets:
     - assets/data/hymns_en.json
     - assets/data/hymns_lg.json
+    - assets/data/songs_ch_en.json
+    - assets/data/songs_ch_lg.json
   fonts:
     - family: Lato
       fonts:

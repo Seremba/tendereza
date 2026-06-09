@@ -38,12 +38,22 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
     setState(() => _input = _input.substring(0, _input.length - 1));
   }
 
-  int _compareNumbers(dynamic a, dynamic b) {
+    int _compareNumbers(dynamic a, dynamic b) {
     if (a is int && b is int) return a.compareTo(b);
     if (a is int) return -1;
     if (b is int) return 1;
+    // Natural sort so C2 < C10 (not lexicographic)
+    final re = RegExp(r'^([A-Za-z]*)(\d+)$');
+    final aM = re.firstMatch(a.toString());
+    final bM = re.firstMatch(b.toString());
+    if (aM != null && bM != null) {
+      final pc = aM.group(1)!.compareTo(bM.group(1)!);
+      if (pc != 0) return pc;
+      return int.parse(aM.group(2)!).compareTo(int.parse(bM.group(2)!));
+    }
     return a.toString().compareTo(b.toString());
   }
+
 
   List<Hymn> _filtered(List<Hymn> hymns) {
     if (_input.isEmpty) return [];

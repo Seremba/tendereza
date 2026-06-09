@@ -19,12 +19,20 @@ class HymnCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    final cardBg = cs.surface;
+    final isChildren = hymn.isChildrenSong;
+
+    final cardBg     = cs.surface;
     final borderColor = cs.outline.withValues(alpha: 0.4);
-    final titleColor = cs.onSurface;
-    final dimColor = cs.onSurface.withValues(alpha: 0.75);
-    final badgeBg = cs.primary.withValues(alpha: 0.2);
-    final badgeFg = cs.primary;
+    final titleColor  = cs.onSurface;
+    final dimColor    = cs.onSurface.withValues(alpha: 0.75);
+
+    // Teal badge for regular hymns, amber for children's songs
+    final badgeBg = isChildren
+        ? Colors.amber.withValues(alpha: 0.18)
+        : cs.primary.withValues(alpha: 0.2);
+    final badgeFg = isChildren
+        ? Colors.amber.shade700
+        : cs.primary;
 
     return InkWell(
       onTap: onTap,
@@ -54,7 +62,7 @@ class HymnCard extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   color: badgeFg,
-                  fontSize: 13,
+                  fontSize: hymn.number.toString().length > 2 ? 11 : 13,
                 ),
               ),
             ),

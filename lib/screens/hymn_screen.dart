@@ -47,8 +47,17 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
 
   int _compareNumbers(dynamic a, dynamic b) {
     if (a is int && b is int) return a.compareTo(b);
-    if (a is int) return -1;
+    if (a is int) return -1; // regular hymns sort before children's songs
     if (b is int) return 1;
+    // Both are string numbers — natural sort so C2 < C10 (not lexicographic)
+    final re = RegExp(r'^([A-Za-z]*)(\d+)$');
+    final aM = re.firstMatch(a.toString());
+    final bM = re.firstMatch(b.toString());
+    if (aM != null && bM != null) {
+      final pc = aM.group(1)!.compareTo(bM.group(1)!);
+      if (pc != 0) return pc;
+      return int.parse(aM.group(2)!).compareTo(int.parse(bM.group(2)!));
+    }
     return a.toString().compareTo(b.toString());
   }
 
@@ -176,8 +185,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       ),
       error: (e, _) => Scaffold(
         backgroundColor: bg,
-        body: Center(
-            child: Text('Error: $e', style: TextStyle(color: dimColor))),
+        body:
+            Center(child: Text('Error: $e', style: TextStyle(color: dimColor))),
       ),
       data: (hymns) {
         final sorted = [...hymns]
@@ -214,216 +223,219 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
               children: [
                 SafeArea(
                   child: Column(
-              children: [
-                // ── Top bar ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  child: Row(
                     children: [
-                      _IconBtn(
-                        icon: Icons.arrow_back,
-                        color: dimColor,
-                        onTap: () => Navigator.of(context).pop(),
+                      // ── Top bar ──
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Row(
+                          children: [
+                            _IconBtn(
+                              icon: Icons.arrow_back,
+                              color: dimColor,
+                              onTap: () => Navigator.of(context).pop(),
+                            ),
+                            const Spacer(),
+                            // ── History icon ──
+                            _IconBtn(
+                              icon: Icons.history_edu_outlined,
+                              color: hasHistory ? accent : dimColor,
+                              onTap: () {
+                                if (hasHistory)
+                                  _showHistory(context, currentHymn);
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            _IconBtn(
+                              icon: isFav
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFav ? accent : dimColor,
+                              onTap: () => ref
+                                  .read(favouritesProvider.notifier)
+                                  .toggle(currentHymn.number),
+                            ),
+                            const SizedBox(width: 16),
+                            _IconBtn(
+                              icon: Icons.share_outlined,
+                              color: dimColor,
+                              onTap: () => _share(currentHymn, lang),
+                            ),
+                            const SizedBox(width: 16),
+                            const LanguageToggle(),
+                          ],
+                        ),
                       ),
-                      const Spacer(),
-                      // ── History icon ──
-                      _IconBtn(
-                        icon: Icons.history_edu_outlined,
-                        color: hasHistory ? accent : dimColor,
-                        onTap: () {
-                          if (hasHistory) _showHistory(context, currentHymn);
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      _IconBtn(
-                        icon: isFav
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: isFav ? accent : dimColor,
-                        onTap: () => ref
-                            .read(favouritesProvider.notifier)
-                            .toggle(currentHymn.number),
-                      ),
-                      const SizedBox(width: 16),
-                      _IconBtn(
-                        icon: Icons.share_outlined,
-                        color: dimColor,
-                        onTap: () => _share(currentHymn, lang),
-                      ),
-                      const SizedBox(width: 16),
-                      const LanguageToggle(),
-                    ],
-                  ),
-                ),
 
-                // ── Hymn header ──
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                  child: Column(
-                    children: [
-                      Text(
-                        '${currentHymn.number}',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: titleColor,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        currentHymn.title,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: titleColor,
-                          height: 1.3,
-                        ),
-                      ),
-                      if (currentHymn.key != null) ...[
-                        const SizedBox(height: 6),
-                        RichText(
-                          text: TextSpan(
-                            style:
-                                TextStyle(fontSize: 13, color: dimColor),
-                            children: [
-                              const TextSpan(text: 'Doh is '),
-                              TextSpan(
-                                text: currentHymn.key,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: accent,
+                      // ── Hymn header ──
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                        child: Column(
+                          children: [
+                            Text(
+                              '${currentHymn.number}',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: titleColor,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currentHymn.title,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: titleColor,
+                                height: 1.3,
+                              ),
+                            ),
+                            if (currentHymn.key != null) ...[
+                              const SizedBox(height: 6),
+                              RichText(
+                                text: TextSpan(
+                                  style:
+                                      TextStyle(fontSize: 13, color: dimColor),
+                                  children: [
+                                    const TextSpan(text: 'Doh is '),
+                                    TextSpan(
+                                      text: currentHymn.key,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: accent,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // ── Verse chip bar ──
-                _VerseNavBar(
-                  verses: currentHymn.verses,
-                  activeIndex: activeVerse,
-                  accent: accent,
-                  badgeBg: badgeBg,
-                  badgeFg: badgeFg,
-                  onTap: (i) => _scrollToVerse(_currentIndex, i),
-                ),
-
-                // ── PageView ──
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (i) => _onPageChanged(i, sorted),
-                    itemCount: sorted.length,
-                    itemBuilder: (_, pageIndex) {
-                      final hymn = sorted[pageIndex];
-                      final verseKeys =
-                          _verseKeysFor(pageIndex, hymn.verses.length);
-                      final scrollCtrl = _scrollControllerFor(pageIndex);
-                      return ListView.builder(
-                        controller: scrollCtrl,
-                        padding:
-                            const EdgeInsets.fromLTRB(20, 12, 20, 40),
-                        itemCount: hymn.verses.length,
-                        itemBuilder: (_, i) => VerseDisplay(
-                          key: verseKeys[i],
-                          verse: hymn.verses[i],
-                          fontSize: fontSize,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                // ── Prev / Next bar + Audio play button ──
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: Row(
-                    children: [
-                      // Audio play button
-                      GestureDetector(
-                        onTap: () => _showAudioComingSoon(context),
-                        child: Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: surfaceColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: accent.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.play_arrow_rounded,
-                            color: dimColor,
-                            size: 24,
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Nav pill
+
+                      // ── Verse chip bar ──
+                      _VerseNavBar(
+                        verses: currentHymn.verses,
+                        activeIndex: activeVerse,
+                        accent: accent,
+                        badgeBg: badgeBg,
+                        badgeFg: badgeFg,
+                        onTap: (i) => _scrollToVerse(_currentIndex, i),
+                      ),
+
+                      // ── PageView ──
                       Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: surfaceColor,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 6),
-                          child: Row(
-                            children: [
-                              _NavArrow(
-                                icon: Icons.chevron_left,
-                                enabled: !isFirst,
-                                accent: accent,
-                                dimColor: dimColor,
-                                onTap: () => _pageController.previousPage(
-                                  duration:
-                                      const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                ),
+                        child: PageView.builder(
+                          controller: _pageController,
+                          onPageChanged: (i) => _onPageChanged(i, sorted),
+                          itemCount: sorted.length,
+                          itemBuilder: (_, pageIndex) {
+                            final hymn = sorted[pageIndex];
+                            final verseKeys =
+                                _verseKeysFor(pageIndex, hymn.verses.length);
+                            final scrollCtrl = _scrollControllerFor(pageIndex);
+                            return ListView.builder(
+                              controller: scrollCtrl,
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                              itemCount: hymn.verses.length,
+                              itemBuilder: (_, i) => VerseDisplay(
+                                key: verseKeys[i],
+                                verse: hymn.verses[i],
+                                fontSize: fontSize,
                               ),
-                              Expanded(
-                                child: Text(
-                                  lang == 'lg'
-                                      ? 'Oluyimba ${currentHymn.number}'
-                                      : 'Hymn ${currentHymn.number}',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: titleColor,
+                            );
+                          },
+                        ),
+                      ),
+
+                      // ── Prev / Next bar + Audio play button ──
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                        child: Row(
+                          children: [
+                            // Audio play button
+                            GestureDetector(
+                              onTap: () => _showAudioComingSoon(context),
+                              child: Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: surfaceColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: accent.withValues(alpha: 0.3),
+                                    width: 1,
                                   ),
                                 ),
-                              ),
-                              _NavArrow(
-                                icon: Icons.chevron_right,
-                                enabled: !isLast,
-                                accent: accent,
-                                dimColor: dimColor,
-                                onTap: () => _pageController.nextPage(
-                                  duration:
-                                      const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
+                                child: Icon(
+                                  Icons.play_arrow_rounded,
+                                  color: dimColor,
+                                  size: 24,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Nav pill
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: surfaceColor,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 6),
+                                child: Row(
+                                  children: [
+                                    _NavArrow(
+                                      icon: Icons.chevron_left,
+                                      enabled: !isFirst,
+                                      accent: accent,
+                                      dimColor: dimColor,
+                                      onTap: () => _pageController.previousPage(
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        lang == 'lg'
+                                            ? 'Oluyimba ${currentHymn.number}'
+                                            : currentHymn.isChildrenSong
+                                                ? 'Song ${currentHymn.number}'
+                                                : 'Hymn ${currentHymn.number}',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: titleColor,
+                                        ),
+                                      ),
+                                    ),
+                                    _NavArrow(
+                                      icon: Icons.chevron_right,
+                                      enabled: !isLast,
+                                      accent: accent,
+                                      dimColor: dimColor,
+                                      onTap: () => _pageController.nextPage(
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
 
                 // ── Floating A+ / A- buttons ──
                 Positioned(
@@ -607,14 +619,10 @@ class _FontSizeButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: enabled
-              ? cs.primary
-              : cs.surface,
+          color: enabled ? cs.primary : cs.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: enabled
-                ? cs.primary
-                : cs.outline.withValues(alpha: 0.3),
+            color: enabled ? cs.primary : cs.outline.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: enabled
@@ -633,7 +641,8 @@ class _FontSizeButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: enabled ? Colors.white : cs.onSurface.withValues(alpha: 0.3),
+              color:
+                  enabled ? Colors.white : cs.onSurface.withValues(alpha: 0.3),
             ),
           ),
         ),
@@ -668,7 +677,8 @@ class _HistorySheet extends StatelessWidget {
             // Handle
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: cs.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
@@ -681,9 +691,7 @@ class _HistorySheet extends StatelessWidget {
             Text(
               'Song History',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: titleColor),
+                  fontSize: 18, fontWeight: FontWeight.w700, color: titleColor),
             ),
             const SizedBox(height: 4),
             Text(
@@ -746,10 +754,8 @@ class _MetaPill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-            fontSize: 12,
-            color: accent,
-            fontWeight: FontWeight.w600),
+        style:
+            TextStyle(fontSize: 12, color: accent, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -769,7 +775,8 @@ class _AudioComingSoonSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: cs.onSurface.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(2),
@@ -777,7 +784,8 @@ class _AudioComingSoonSheet extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           Container(
-            width: 64, height: 64,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: cs.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -794,9 +802,7 @@ class _AudioComingSoonSheet extends StatelessWidget {
           Text(
             'Audio Coming Soon',
             style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: cs.onSurface),
+                fontSize: 18, fontWeight: FontWeight.w700, color: cs.onSurface),
           ),
           const SizedBox(height: 8),
           Text(
