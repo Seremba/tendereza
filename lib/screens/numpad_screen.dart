@@ -129,8 +129,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                     ? (lang == 'lg' ? 'BYALABIDDWA OLUVANNYUMA' : 'RECENTLY VIEWED')
                     : (lang == 'lg' ? 'EMIYIMBA EYAZAALA' : 'POPULAR HYMNS');
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return ListView(
+                  padding: const EdgeInsets.only(bottom: 8),
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),

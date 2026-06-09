@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import '../app.dart';
-import '../providers/providers.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -115,23 +113,6 @@ class MoreScreen extends ConsumerWidget {
 
                   // ── Settings ──
                   _SectionLabel(label: 'Settings', dimColor: dimColor),
-                  _SettingsCard(
-                    surfaceColor: surfaceColor,
-                    borderColor: borderColor,
-                    children: [
-                      _SettingsRow(
-                        icon: Icons.brightness_6_outlined,
-                        title: 'Theme',
-                        subtitle: _themeLabel(ref),
-                        titleColor: titleColor,
-                        dimColor: dimColor,
-                        borderColor: borderColor,
-                        onTap: () => _showThemeSheet(context, ref, cs),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
                   // ── Support ──
                   _SectionLabel(label: 'Support', dimColor: dimColor),
                   _SettingsCard(
@@ -224,27 +205,9 @@ class MoreScreen extends ConsumerWidget {
     );
   }
 
-  String _themeLabel(WidgetRef ref) {
-    final mode = ref.watch(appThemeProvider);
-    return switch (mode) {
-      TenderezaTheme.light => 'Light',
-      TenderezaTheme.sepia => 'Sepia',
-      TenderezaTheme.dark  => 'Dark',
-      TenderezaTheme.black => 'Black',
-      TenderezaTheme.gold  => 'Gold',
-    };
-  }
 
-  void _showThemeSheet(BuildContext context, WidgetRef ref, ColorScheme cs) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: cs.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _ThemeSheet(cs: cs),
-    );
-  }
+
+
 
   void _showDonateSheet(BuildContext context, ColorScheme cs) {
     showModalBottomSheet(
@@ -323,7 +286,6 @@ class _SettingsCard extends StatelessWidget {
 class _SettingsRow extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String? subtitle;
   final Color titleColor;
   final Color dimColor;
   final Color borderColor;
@@ -336,7 +298,6 @@ class _SettingsRow extends StatelessWidget {
     required this.dimColor,
     required this.borderColor,
     required this.onTap,
-    this.subtitle,
   });
 
   @override
@@ -362,11 +323,7 @@ class _SettingsRow extends StatelessWidget {
                       color: titleColor,
                     ),
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(subtitle!,
-                        style: TextStyle(fontSize: 12, color: dimColor)),
-                  ],
+
                 ],
               ),
             ),
@@ -378,326 +335,108 @@ class _SettingsRow extends StatelessWidget {
   }
 }
 
-// ── Theme sheet ──
-class _ThemeSheet extends ConsumerWidget {
-  final ColorScheme cs;
-  const _ThemeSheet({required this.cs});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(appThemeProvider);
-    final notifier = ref.read(appThemeProvider.notifier);
-
-    final options = [
-      (TenderezaTheme.light, 'Light'),
-      (TenderezaTheme.sepia, 'Sepia'),
-      (TenderezaTheme.dark,  'Dark'),
-      (TenderezaTheme.black, 'Black'),
-      (TenderezaTheme.gold,  'Gold'),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: cs.onSurface.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text('Theme',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurface)),
-          const SizedBox(height: 16),
-          ...options.map((opt) {
-            final isSelected = current == opt.$1;
-            return GestureDetector(
-              onTap: () {
-                notifier.setTheme(opt.$1);
-                Navigator.pop(context);
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        opt.$2,
-                        style: TextStyle(
-                          color: cs.onSurface,
-                          fontSize: 16,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isSelected
-                              ? cs.primary
-                              : cs.onSurface.withValues(alpha: 0.4),
-                          width: 2,
-                        ),
-                      ),
-                      child: isSelected
-                          ? Center(
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: cs.primary,
-                                ),
-                              ),
-                            )
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Donate sheet ──
+// ── Donate Sheet ──
 class _DonateSheet extends StatelessWidget {
   final ColorScheme cs;
   const _DonateSheet({required this.cs});
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.6,
-      maxChildSize: 0.9,
-      builder: (_, scrollController) => ScrollConfiguration(
-        behavior: const ScrollBehavior().copyWith(overscroll: false),
-        child: SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: cs.onSurface.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text('❤️', style: TextStyle(fontSize: 36)),
-              const SizedBox(height: 12),
-              Text('Support Tendereza',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: cs.onSurface)),
-              const SizedBox(height: 10),
-              Text(
-                'Tendereza is free and built with love. '
-                'If it has been a blessing to you, '
-                'consider supporting its development.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14,
-                    color: cs.onSurface.withValues(alpha: 0.75),
-                    height: 1.6),
-              ),
-              const SizedBox(height: 24),
-              _DonateOption(
-                label: 'MTN Mobile Money',
-                icon: Icons.phone_android,
-                color: const Color(0xFFFFCC00),
-                onTap: () {
-                  // TODO: add MTN MoMo number
-                },
-              ),
-              const SizedBox(height: 12),
-              _DonateOption(
-                label: 'Airtel Money',
-                icon: Icons.phone_android,
-                color: const Color(0xFFE40000),
-                onTap: () {
-                  // TODO: add Airtel Money number
-                },
-              ),
-              const SizedBox(height: 12),
-              _DonateOption(
-                label: 'Flutterwave',
-                icon: Icons.credit_card_outlined,
-                color: cs.primary,
-                onTap: () {
-                  // TODO: add Flutterwave donate link
-                },
-              ),
-            ],
+    final textColor = cs.onSurface;
+    final dimColor = cs.onSurface.withValues(alpha: 0.6);
+
+    return Container(
+      color: cs.surface,
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: cs.outline,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-        ),
+          const SizedBox(height: 24),
+          Icon(Icons.volunteer_activism_outlined,
+              size: 48, color: cs.primary),
+          const SizedBox(height: 16),
+          Text(
+            'Support Tendereza',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Help us keep this app free and growing.\nYour support means a lot!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: dimColor, height: 1.6),
+          ),
+          const SizedBox(height: 24),
+          // TODO: add MTN MoMo number
+          // TODO: add Airtel Money number
+          // TODO: add Flutterwave donate link
+          Text(
+            'Donation options coming soon.',
+            style: TextStyle(fontSize: 13, color: dimColor),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _DonateOption extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _DonateOption({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(width: 14),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: color)),
-            const Spacer(),
-            Icon(Icons.arrow_forward_ios,
-                size: 14, color: color.withValues(alpha: 0.6)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Privacy Policy sheet ──
+// ── Privacy Policy Sheet ──
 class _PrivacyPolicySheet extends StatelessWidget {
   final ColorScheme cs;
   const _PrivacyPolicySheet({required this.cs});
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.75,
-      maxChildSize: 0.95,
-      builder: (_, scrollController) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-        child: Column(
-          children: [
-            Container(
-              width: 40,
-              height: 4,
+    final textColor = cs.onSurface;
+    final dimColor = cs.onSurface.withValues(alpha: 0.6);
+
+    return Container(
+      color: cs.surface,
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40, height: 4,
               decoration: BoxDecoration(
-                color: cs.onSurface.withValues(alpha: 0.3),
+                color: cs.outline,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 20),
-            Text('Privacy Policy',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: cs.onSurface)),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                children: [
-                  _PolicySection(
-                    title: 'Introduction',
-                    body: 'Tendereza is committed to protecting your privacy. This policy explains how we handle your information.',
-                    cs: cs,
-                  ),
-                  _PolicySection(
-                    title: 'Data We Collect',
-                    body: 'Tendereza does not collect any personal data. Your favourites and settings are stored locally on your device only.',
-                    cs: cs,
-                  ),
-                  _PolicySection(
-                    title: 'Device Permissions',
-                    body: 'The app only requires storage access to save your preferences. No other permissions are required.',
-                    cs: cs,
-                  ),
-                  _PolicySection(
-                    title: 'Internet Usage',
-                    body: 'Tendereza works fully offline. We do not transmit any data over the network.',
-                    cs: cs,
-                  ),
-                  _PolicySection(
-                    title: 'Contact',
-                    body: 'If you have any questions about this policy, contact us at: pserembae.patrick@gmail.com',
-                    cs: cs,
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Privacy Policy',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: textColor,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PolicySection extends StatelessWidget {
-  final String title;
-  final String body;
-  final ColorScheme cs;
-
-  const _PolicySection({
-    required this.title,
-    required this.body,
-    required this.cs,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurface)),
-          const SizedBox(height: 6),
-          Text(body,
-              style: TextStyle(
-                  fontSize: 14,
-                  color: cs.onSurface.withValues(alpha: 0.75),
-                  height: 1.6)),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Tendereza does not collect, store, or share any personal data. '
+            'All hymn data is stored locally on your device. '
+            'No account or internet connection is required to use the app.',
+            style: TextStyle(fontSize: 14, color: dimColor, height: 1.7),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'For questions, contact us at sericklabs@gmail.com',
+            style: TextStyle(fontSize: 13, color: cs.primary),
+          ),
         ],
       ),
     );

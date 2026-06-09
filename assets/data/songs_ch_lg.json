@@ -1,0 +1,682 @@
+[
+  {
+    "number": "C1",
+    "key": "C",
+    "title": "Yesu ye Anjagala",
+    "english_title": "Jesus Loves Me",
+    "first_line": "Yesu ye anjagala, bwatyo bwe yayogera;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Yesu ye anjagala, bwatyo bwe yayogera;\nAbaan(a) abato nga babe, beyawa omukisa gwe."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Anjagala nze, anjagala nze;\nAnjagala nze, yayogera bw'atyo."
+      },
+      {
+        "label": "2",
+        "lines": "Yesu ye anjagala, bwe mbeer(a) omunak(u) ennyo;\nEra alingabira, byonna bye nnetaaga nze."
+      },
+      {
+        "label": "3",
+        "lines": "Yesu fenn(a) atwagala, yaf(a) okutununula;\nYaggulawo oluggi, atusonyiw(e) ebibi."
+      },
+      {
+        "label": "4",
+        "lines": "Yesu ankulembera, gyennagendanga yonna;\nTandekeng(a) alintuusa, mu ggulu nga njaguza."
+      }
+    ]
+  },
+  {
+    "number": "C2",
+    "title": "Enkya Nanaabye Engalo",
+    "english_title": "I Washed My Hands",
+    "first_line": "Enkya nanaaby(e) engalo, ne nzitukuza nnyo;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Enkya nanaaby(e) engalo, ne nzitukuza nnyo;\nN'enziwaay(o) eri Yesu, okumukolera."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Ggwe (e)bigere byange, wegendereze;\nEbya Yesu byokka, by'onkozesanga."
+      },
+      {
+        "label": "2",
+        "lines": "Era n'amatu gange, gawulire byonna;\nBuli ebisaanira, ndyoke mbikolenga."
+      },
+      {
+        "label": "3",
+        "lines": "Era n'amaaso gange, galab(e) amazima;\nNetaag(a) okugafuga, okumuweereza."
+      },
+      {
+        "label": "4",
+        "lines": "N'olulimi njagal(a) okuluwa Mukama;\nOkwoger(a) ebituufu, ebikusanyusa."
+      },
+      {
+        "label": "5",
+        "lines": "Naatunuuliranga Ye, mu buli kye nkola;\nMpone ebibi byonna, mu linnya lya Yesu."
+      }
+    ]
+  },
+  {
+    "number": "C3",
+    "key": "F",
+    "title": "Yesu Alaba Ennyonyi",
+    "english_title": "God Sees the Little Sparrow Fall",
+    "first_line": "Yesu alaba ennyonyi nga zigwa ku ttaka,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Yesu alaba ennyonyi nga zigwa ku ttaka,\nOba ng(a) azaagala bwatyo, Nange anjagala."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Anjagala, anjagala, mmanyi nga'njagala;\nObang(a) ayagal(a) ennyonyi, nange anjagala."
+      },
+      {
+        "label": "2",
+        "lines": "Ayambaza amalanga, erang(i) ennung(i) ennyo,\nNga bwayagal(a) ebimuli, Nange anjagala."
+      },
+      {
+        "label": "3",
+        "lines": "Ebitono ne'binene, byonna yabitonda\nAnajjukirang(a) babe, anaabaagalanga."
+      }
+    ]
+  },
+  {
+    "number": "C4",
+    "key": "Eb",
+    "title": "Ensimbi Ezigwa Oziwulira?",
+    "english_title": "I Hear the Shillings Dropping",
+    "first_line": "Ensimbi ezigwa oziwulira?",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Ensimbi ezigwa oziwulira?\nZigwa mu nsawo, tuziwa Yesu."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Ensimbi zigwa mu nsawo, wulira zigwa,\nTuziwa Mukama, atwale zonna."
+      },
+      {
+        "label": "2",
+        "lines": "Bulijjo tumuwe, fenna abato;\nKano ke kalabo, kaffe abato."
+      },
+      {
+        "label": "3",
+        "lines": "Yesu ffe abaana, tuleese buno;\nNaye nga tukuze, tulisinzaawo."
+      },
+      {
+        "label": "4",
+        "lines": "Tulina buno, tukwagala nnyo;\nYe saddaaka yaffe, olw'ekisa kyo."
+      }
+    ]
+  },
+  {
+    "number": "C5",
+    "key": "D",
+    "title": "Omutambuze Nze",
+    "first_line": "Omutambuze nze, omugeny(i) era;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Omutambuze nze, omugeny(i) era;\nEby'omusi bingi, bijj(a) okunnumba."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Yesu Atwal(a) abato, alibakulembera,\nN'abatuusa ewuwe, mu maka ge Ye."
+      },
+      {
+        "label": "2",
+        "lines": "Ensi eyo nnungi, temuli kabi;\nN'ennaku temuli, tebituukayo."
+      },
+      {
+        "label": "3",
+        "lines": "Olugendo olwo, alutambula;\nAsab(a) eri Yesu, obutalemwa."
+      },
+      {
+        "label": "4",
+        "lines": "Yesu onnongoose, onjigirize;\nOnnun'gamye nkwate, erijja gy'oli."
+      }
+    ]
+  },
+  {
+    "number": "C6",
+    "key": "F",
+    "title": "Awo Yesu Bwe Yatambula",
+    "first_line": "Awo Yesu bwe yatambula, edda mu nsi entukuvu;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Awo Yesu bwe yatambula, edda mu nsi entukuvu;\n(A)bakyala Abayudaaya, baamusemberera."
+      },
+      {
+        "label": "2",
+        "lines": "Bajja nga bamuleetera, abaana baabwe abato;\n(A)bateeke mu mikono gye, baweebw(e) omukisa."
+      },
+      {
+        "label": "3",
+        "lines": "Naye abayigirizwa, ne babagobera ddala;\nNti temumuteganya nnyo, tubeegayiridde."
+      },
+      {
+        "label": "4",
+        "lines": "Bwe yabalaba abato, Yesu yalagira bajje;\nYayogera n'eggonjebwa, \"(A)bato bajje gyendi\""
+      }
+    ]
+  },
+  {
+    "number": "C7",
+    "key": "Db",
+    "title": "Yesu Mulokozi Wange",
+    "first_line": "Yesu Mulokozi wange; leero nze wuwo wekka,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Yesu Mulokozi wange; leero nze wuwo wekka,\nOmusaayi gwo gunnaazizza, Yesu Mwana gw'endiga."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Tukutendereza Yesu, Yesu Mwana gw'endiga,\nOmusaayi gwo gunnaazizza, nkwebaz(a) Omulokozi."
+      },
+      {
+        "label": "2",
+        "lines": "Edda nafuba bufubi, okufun(a) emirembe,\nLeero mmaliridde ddala, okweyabiza Yesu."
+      },
+      {
+        "label": "3",
+        "lines": "Nnaabuliraang(a) abantu, obulokozi bwonna;\nObutali bwa kitundu, obulamb(a) obw'obuwa."
+      },
+      {
+        "label": "4",
+        "lines": "Nnaategeezang(a) ebya Yesu, n'obuvumu ne sitya;\nEyanzija mu busibe, n'okuwony(a) eyamponya."
+      },
+      {
+        "label": "5",
+        "lines": "Nneebaz(a) eyanunula nze, eyamponya wakisa!\nYes(u) ankuum(a) ansanyus(a) era, bulijjo, Yebazibwe."
+      }
+    ]
+  },
+  {
+    "number": "C8",
+    "title": "Yesu Bwabeera mu Maka",
+    "english_title": "Happy, Happy Home",
+    "first_line": "Yesu bw'abeera mu maka, gaba ga ssanyu,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Yesu bw'abeera mu maka, gaba ga ssanyu,\nGaba ga ssanyu, ssanyu lingi nnyo;\nYesu bw'abeera mu maka, gaba ga ssanyu,\nSsanyu lingi nnyo."
+      },
+      {
+        "label": "2",
+        "lines": "Yesu bw'abeera ne taata, aba wa ssanyu,\nAba wa ssanyu, ssanyu lingi nnyo;\nYesu bw'abeera ne taata, aba wa ssanyu,\nSsanyu lingi nnyo."
+      },
+      {
+        "label": "3",
+        "lines": "Yesu bw'abeera ne maama, aba wa ssanyu,\nAba wa ssanyu, ssanyu lingi nnyo;\nYesu bwabeera ne maama, aba wa ssanyu,\nSsanyu lingi nnyo."
+      },
+      {
+        "label": "4",
+        "lines": "Bw'abeera mu mutima gwo, guba gwa ssanyu,\nGuba gwa ssanyu, ssanyu lingi nnyo;\nBw'abeera mu mutima gwo, guba gwa ssanyu,\nSsanyu lingi nnyo."
+      }
+    ]
+  },
+  {
+    "number": "C8",
+    "title": "Ensimbi Zaffe Mugende",
+    "english_title": "Go Little Pennies",
+    "first_line": "Ensimbi zaffe mugende, mutwaal(e) obubaka bwonna;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Ensimbi zaffe mugende, mutwaal(e) obubaka bwonna;\nEri abaana abato, nabo balokoke."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Ensimbi zaffe mugende, mugende mu baabuulire;\nYesu Mukama wa kisa, wagazi w'abantu."
+      },
+      {
+        "label": "2",
+        "lines": "Mugende mubabuulire, byonna bye tukola wano;\nNabo balyoke bayige, nga ffe bwetuyiga."
+      },
+      {
+        "label": "3",
+        "lines": "Newankubadde nga ntono, Mukama zimusanyusa;\nOkukol(a) omulimu gwe, zibuulir(e) abaana."
+      }
+    ]
+  },
+  {
+    "number": "C9",
+    "title": "Nyambala Engule Yange",
+    "english_title": "I Will Wear a Crown",
+    "first_line": "Ndyambala engule yange mu ggulu;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Ndyambala engule yange mu ggulu;\nYange mu ggulu, yange mu ggulu;\nNdyambala engule yange mu ggulu;\nWalibaawo (e)ssanyu, (e)ssanyu."
+      },
+      {
+        "label": "2",
+        "lines": "Ndikuba ennanga yange mu ggulu,\nYange mu ggulu, yange mu ggulu,\nNdikuba ennanga yange mu ggulu,\nWalibaawo (e)ssanyu, (e)ssanyu."
+      },
+      {
+        "label": "3",
+        "lines": "Ndyambala busuuti yange muggulu,\nYange mu ggulu, yange mu ggulu;\nNdyamabala busuuti yange muggulu,\nWalibaawo (e)ssanyu, (e)ssanyu."
+      }
+    ]
+  },
+  {
+    "number": "C10",
+    "title": "Waggulu mu Bbanga",
+    "english_title": "Up, Up in the Sky",
+    "first_line": "Waggulu mu bbanga, ennyonyi zibuuka,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Waggulu mu bbanga, ennyonyi zibuuka,\nNeziwummulira wansi mu bisu;\nEkiwawa kya kkono, n'ekiwawa ekya ddyo,\nLeka ennyonyi zeebake ekiro."
+      },
+      {
+        "label": "2",
+        "lines": "Enjuba evaayo, (o)musana guyaka,\nOtyanno wanjuba, enyony(i) zibuuza;\n(E)bimuli birungi, (e)miti gisanyusa,\nTwebaza Kitaffe olw'obutonzi!"
+      }
+    ]
+  },
+  {
+    "number": "C11",
+    "title": "Mu Mutima, Mu Mutima",
+    "english_title": "Into My Heart",
+    "first_line": "Mu mutima, mu mutima, jjangu mu mutima gwange;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Mu mutima, mu mutima, jjangu mu mutima gwange;\nJjangu leero, oyingire, jangu mu mutima gwange."
+      },
+      {
+        "label": "2",
+        "lines": "Omusana, omusana, gwake mu mutima gwange;\nYesu Musana gw'obulamu, gwake mu mutima gwange."
+      }
+    ]
+  },
+  {
+    "number": "C12",
+    "title": "Katonda Tukwebaza",
+    "english_title": "Thank You for the World so Sweet",
+    "first_line": "Katonda tukwebaza, olw'emmere gyetulya;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Katonda tukwebaza, olw'emmere gyetulya;\nN'engoye zetwambala, n'olw'ennyony(i) eziyimba."
+      },
+      {
+        "label": "2",
+        "lines": "Tukwebaz(a) olw'amaka, era n'olwoomusana;\nN'olw'eggul(o) olulungi, n'olwabyonna by'otuwa."
+      }
+    ]
+  },
+  {
+    "number": "C13",
+    "title": "Sabanga Mpola Mu Makya",
+    "english_title": "Whisper a Prayer in the Morning",
+    "first_line": "Sabanga mpola mu makya, sabanga n'eggulo",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Sabanga mpola mu makya, sabanga n'eggulo\nSabanga nakawungeezi, kiyamba omutima."
+      },
+      {
+        "label": "2",
+        "lines": "Yesu addam(u) okusaba, olunaku lwonna;\nYesu addam(u) okusaba, okutusanyusa."
+      },
+      {
+        "label": "3",
+        "lines": "Ayinza okujja ku nkya, oba olw'eggulo;\nOba anajja mu ttumbi, gumanga omwoyo."
+      }
+    ]
+  },
+  {
+    "number": "C14",
+    "key": "Bb",
+    "title": "Ffe Tuli Ggye kya Mukama",
+    "english_title": "Missionary Band",
+    "first_line": "Ffe tuli ggye lya Mukama, ff(e) abatono abanafu;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Ffe tuli ggye lya Mukama, ff(e) abatono abanafu;\nKyokka ffe twagala Yesu, tumukolere bingi."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Ffe tuli ggye lya Mukama,\nGgye lya Mukama, ggye lya Mukama;\nFfe tuli ggye lya Mukama, tumukolere."
+      },
+      {
+        "label": "2",
+        "lines": "Waliwo abato bangi, ewala mu bizinga;\nTebannamanya ku Yesu, basinza bifaananyi."
+      },
+      {
+        "label": "3",
+        "lines": "Tutumey(o) abasomesa, bayig(e) okusabanga;\nMukama omulokozi, asonyiwa ebibi."
+      },
+      {
+        "label": "4",
+        "lines": "Yesu yajja ku nsi kuno, okufa ku lwa bonna;\nBwe balimutegeera Ye, alibawa essanyu."
+      }
+    ]
+  },
+  {
+    "number": "C15",
+    "title": "Ekimuli Ekito Mbuulira",
+    "english_title": "The Reason",
+    "first_line": "(E)kimuli ekito mbuulira, Katonda akukolera ki?",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "(E)kimuli ekito mbuulira, Katonda akukolera ki?\n\"Ampa enkuba n'omusana gwe, kye nava nkula bwe nti.\""
+      },
+      {
+        "label": "2",
+        "lines": "(A)kanyonyi akato mbuulira, Katonda akukolera ki?\n\"Ampa emmere n'aw'okusula, kye nva mmuyimbir(a) ennyo.\""
+      },
+      {
+        "label": "3",
+        "lines": "(O)bwana mmwe obuto mwogere, Katonda abakolera ki?\n\"Bulijjo atuwa essanyu lye, kye tuva tusek(a) ennyo.\""
+      }
+    ]
+  },
+  {
+    "number": "C16",
+    "title": "Buli Nnaku Omukaaga",
+    "english_title": "The Seventh is for Jesus",
+    "first_line": "Buli nnaku omukaaga, tukol(a) era tuzannya;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Buli nnaku omukaaga, tukol(a) era tuzannya;\nOlw'omusanvu lwa Yesu, (o)lunaku lutukuvu."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Emu, bbiri, satu, nnya, ttaano, omukaaga zaffe;\nNay(e) olw'omusanvu lulwe, Sabbiiti ya Mukama."
+      },
+      {
+        "label": "2",
+        "lines": "Bye tunaayogera leero, ne byonna bye tukola;\nKa tumugoberere nga, abaana ba Katonda."
+      },
+      {
+        "label": "3",
+        "lines": "Ka tugende mu ssomero, lya Ssabiiti tusabe\nEra tuyige ku Yesu, n'okwagala kw(e) okungi."
+      }
+    ]
+  },
+  {
+    "number": "C17",
+    "title": "Ndibafuula Abavubi B'abantu",
+    "english_title": "I Will Make You Fishers of Men",
+    "first_line": "Ndibafuula abavubi, abavubi ab'abantu;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Ndibafuula abavubi, abavubi ab'abantu;\nNdibafuula abavubi, mmwe mujje gyendi."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Mmwe mujje gyendi, muyite nange;\nNdibafuula abavubi, mmwe mujje gyendi."
+      },
+      {
+        "label": "2",
+        "lines": "Wulira Yesu ayita, jjangu gy'endi, jjangu gy'endi\nWulira Yesu ayita, akuwummuze."
+      },
+      {
+        "label": "3",
+        "lines": "Yesu Kristo ajja kudda, Ajja mangu, Ajja mangu;\nYesu Kristo Ajja mangu, okututwala."
+      }
+    ]
+  },
+  {
+    "number": "C18",
+    "title": "Abaana ba Katonda Mmwenna",
+    "english_title": "Always be Cheerful",
+    "first_line": "(A)baana ba Katonda mmwenna, muwulire bw'atulagira;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "(A)baana ba Katonda mmwenna, muwulire bw'atulagira;\nAgamba, \"Beera mu ssanyu,\" Kabaka atwagala."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Mu mutima tulin(a) essanyu, tugoberer(a) omulokozi;\nAtuweerez(a) essanyu lingi, bulijj(o) atusanyusa."
+      },
+      {
+        "label": "2",
+        "lines": "Tukulemberwa Katonda, mu lugendo atukuuma nnyo;\nAtusuubiz(a) omukisa, tayinza kutuleka."
+      },
+      {
+        "label": "3",
+        "lines": "Abato be n'abakulu, katubeere n'obunyiikivu;\nTetukoowa amang(u) ago, mu kulokol(a) abantu."
+      },
+      {
+        "label": "4",
+        "lines": "Buli lwe tuggwam(u) amaanyi, ekibi kituteganya nnyo;\nEttima ery'omulabe, limalawo essanyu."
+      }
+    ]
+  },
+  {
+    "number": "C19",
+    "title": "Omusana Gwange",
+    "english_title": "This Little Light of Mine",
+    "first_line": "Omusana gwaange, nze nnaaguyasanga;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Omusana gwaange, nze nnaaguyasanga;\nOmusana gwaange, nze nnaaguyasanga; Gwakenga x3"
+      },
+      {
+        "label": "2",
+        "lines": "Siguvuniikirenga, nze nnaaguyasanga,\nSiguvuniikirenga, nze nnaaguyasanga; Gwakenga x3"
+      },
+      {
+        "label": "3",
+        "lines": "Setaani tayinze, nze nnaaguyasanga,\nSetaani tayinze, nze nnaaguyasanga; Gwakenga x3"
+      },
+      {
+        "label": "4",
+        "lines": "Yesu ajja kujjja, nze nnaaguyasanga,\nYesu ajja kujjja, nze nnaaguyasanga; Gwakenga x3"
+      },
+      {
+        "label": "5",
+        "lines": "Baliranwa bange, nze nnaaguyasanga,\nBaliranwa bange, nze nnaaguyasanga; Gwakenga x3"
+      }
+    ]
+  },
+  {
+    "number": "C20",
+    "title": "Emiti Gyewuuba Mpola",
+    "english_title": "The Trees are Gently Swaying",
+    "first_line": "(E)miti gyewuuba wuuba, mpola, mpola;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "(E)miti gyewuuba wuuba, mpola, mpola;\n(E)miti gyewuuba mpola, Katonda kwagala."
+      },
+      {
+        "label": "2",
+        "lines": "(E)biwojjolo bibuuka, mpola, mpola;\n(E)biwojjola bibuuka, Katonda kwagala."
+      },
+      {
+        "label": "3",
+        "lines": "Nnyonyi zibuuka buuka, mpola, mpola;\nNyonyi zibuuka mpola, Katonda kwagala."
+      },
+      {
+        "label": "4",
+        "lines": "Ebimuli byewuuba, mpola, mpola;\nEbimuli nyewuuba, Katonda kwagala."
+      },
+      {
+        "label": "5",
+        "lines": "Naffe twewuuba wuuba, mpola, mpola;\nNaffe ywewuuba mpola, Katonda kwagala."
+      }
+    ]
+  },
+  {
+    "number": "C21",
+    "title": "Nze Ndi Mmunyenye Entono",
+    "english_title": "I'm a Little Star for Jesus",
+    "first_line": "Nze ndi mmunyenye entono, eyak(a) ekiro kyonna;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Nze ndi mmunyenye entono, eyak(a) ekiro kyonna;\nNze ndi mmunyenye ya Yesu. Eyaka omusana."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Nze ndi mmunyeny(e) entono ey'essanyu;\n(Nze ndi mmunyenye ya Yesu.) x2"
+      },
+      {
+        "label": "2",
+        "lines": "Nze nsi mmunyenye ya Yesu, eyak(a) etezikira;\nNze ndi mmunyenye ya Yesu, nja kwakanga bulijjo."
+      },
+      {
+        "label": "3",
+        "lines": "Nze ndi mmunyenye ya Yesu, mu nsi en(o) eyekibi;\nNja kwakanga kulwa Yesu, okutuusa lw'alijja."
+      }
+    ]
+  },
+  {
+    "number": "C22",
+    "title": "Yesu Ayagala Abaana",
+    "english_title": "Jesus Loves the Little Children",
+    "first_line": "Yesu ayagala (a)baana, abaana bonna mu nsi;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Yesu ayagala (a)baana, abaana bonna mu nsi;\nTayinza kubagobera bweru, yagaan(a) okubagoba,\nEra tabeerabira; n'obwana obukafiiri obw'ewala."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Yesu ayagala (a)baana, abaana bonna mu nsi;\nAbeeru n'abakyenvu, naffe abaddugavu;\nYesu ayagala (a)baana b'omunsi."
+      },
+      {
+        "label": "2",
+        "lines": "Nkumi na nkumi bafa, eyo mu ns(i) ezewala;\nTebamanyi na kwagala kwa Yesu, tusab(e) era tugabe;\nBalyoke bategeere, ekitiibwa ekibalindiridde."
+      },
+      {
+        "label": "3",
+        "lines": "Ka tubuulire wonna, obulungi bwa Yesu;\nEnjiri ebune mu nnimi zonna, tuyimb(e) era tusuute,\nOmulokozi waffe; n'abantu bonna bamutendereze."
+      }
+    ]
+  },
+  {
+    "number": "C23",
+    "title": "Tumusinze Katonda Kitaffe",
+    "english_title": "Praise Him! Little Children",
+    "first_line": "Tumusinze Katonda Kitaffe, mwagazi, mwagazi;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Tumusinze Katonda Kitaffe, mwagazi, mwagazi;\nAbaana be tumutendereze, Katonda, kwagala."
+      },
+      {
+        "label": "2",
+        "lines": "Mwe abaan(a) abato n'abakulu, mwagazi, mwagazi;\nKa twagalenga Mukama waffe; Katonda kwagala."
+      },
+      {
+        "label": "3",
+        "lines": "Bulijjo ka tumuweerezenga, mwagazi, mwagazi;\nBulijjo ka tube bawombeefu; Katonda kwagala."
+      }
+    ]
+  },
+  {
+    "number": "C24",
+    "title": "Katonda ye Yantonda",
+    "english_title": "God Made Me",
+    "first_line": "Enkya ennungi egamba, \"Katonda yankola bulungi nnyo!\"",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Enkya ennungi egamba, \"Katonda yankola bulungi nnyo!\"\nEnkya ennungi egamba, \"Yantonda (ku) lwa kusooka.\""
+      },
+      {
+        "label": "2",
+        "lines": "Ebire byonna bigamba, \"yankola bulungi nnyo!\"\nEbire byonna bigamba, \"Yantonda (ku) lwa kubiri\""
+      },
+      {
+        "label": "3",
+        "lines": "(E)bimuli byonn(a) ebirungi bigamba \"Yankola bulungi nnyo!\"\n(E)bimuli byonna bigamba, \"Yankola (ku) lwa kusatu\""
+      },
+      {
+        "label": "4",
+        "lines": "Mmunyeny(e) ezimasaamasa zigamba, \"yatukola bulungi nnyo!\"\nMmunyenye zonna zigamba, \"Yantonda (ku) lwa kuna\""
+      },
+      {
+        "label": "5",
+        "lines": "Nnyabo wankoko agamba \"Katonda yankola bulungi nnyo!\"\nNnyabo wankoko agamba \"Yantonda ku lwa kutaano\""
+      },
+      {
+        "label": "6",
+        "lines": "Omusajja n'omukazi bagamba, \"yatukola bulungi nnyo!\"\nMu kifaananyi kya Katonda ddala, \"Ku lwa mukaaga\""
+      },
+      {
+        "label": "7",
+        "lines": "Olunaku lwa Sabbiiti lugamba, \"yantonda bulungi nnyo!\"\nOmukisa n'ekitiibwa yabimpa, \"Ku lwa musanvu\""
+      }
+    ]
+  },
+  {
+    "number": "C25",
+    "title": "Mpa Amafuta mu Tabaaza Yange",
+    "english_title": "Give Me Oil in My Lamp",
+    "first_line": "Mp(a) amafuta mu ttabaaza yange;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Mp(a) amafuta mu ttabaaza yange;\nMp(a) amafuta ge nkusaba;\nMp(a) amafuta mu ttabaaza yange,\nNjakenga okutuusa enkya,"
+      },
+      {
+        "label": "Chorus",
+        "lines": "Yimb(a) ozaana, yimb(a) ozaana,\nYimb(a) ozaana Katonda afuga. x2"
+      }
+    ]
+  },
+  {
+    "number": "C26",
+    "title": "Tukwebaza Yesu",
+    "english_title": "We Thank Thee",
+    "first_line": "Tukwebaza Yesu, olw'okwagala;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Tukwebaza Yesu, olw'okwagala;\nN'emikisa emingi gy'otuwa ffe."
+      },
+      {
+        "label": "2",
+        "lines": "Okutukuuma n'okutwambaza;\nN'obulamu ne tuzannya n'essanyu."
+      },
+      {
+        "label": "3",
+        "lines": "Mu maka gaffe, n'abatuzaala;\nByetwagala tukwabaze ggwe Yesu."
+      }
+    ]
+  },
+  {
+    "number": "C27",
+    "title": "Ebitundu By'ekkumi",
+    "english_title": "Bring Ye All the Tithes",
+    "first_line": "Ebitundu by'ekkumi bireetebwe,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Ebitundu by'ekkumi bireetebwe,\nMunkeme naby(o) olwa leero;\nNnaabafukira emikisa,\nNewatabaawo na bbanga, kugyaawo."
+      }
+    ]
+  },
+  {
+    "number": "C28",
+    "title": "Mweraba",
+    "english_title": "Goodbye Song",
+    "first_line": "Tumaze okusoma, tuddayo ewaffe,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Tumaze okusoma, tuddayo ewaffe,\nMweraba, mweraba, mubeere besigwa;\nMweraba, mweraba, Katond(a) abakuume."
+      }
+    ]
+  }
+]

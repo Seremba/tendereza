@@ -1,0 +1,588 @@
+[
+  {
+    "number": "C1",
+    "key": "C",
+    "title": "Jesus Loves Me",
+    "first_line": "Jesus loves me! this I know,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Jesus loves me! this I know,\nFor the Bible tells me so;\nLittle ones to Him belong,\nThey are weak but He is strong."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Yes, Jesus loves me!\nYes, Jesus loves me!\nYes, Jesus loves me!\nThe Bible tells me so."
+      },
+      {
+        "label": "2",
+        "lines": "Jesus loves me! He who died,\nHeaven's gates to open wide;\nHe will wash away my sin,\nLet His little child come in."
+      },
+      {
+        "label": "3",
+        "lines": "Jesus loves me! He will stay,\nClose beside me all the way;\nThou hast bled and died for me,\nI will henceforth live for Thee."
+      },
+      {
+        "label": "4",
+        "lines": "Jesus loves me! leads me on,\nAll the way to heaven's throne;\nHe will take me there some day,\nWhen I've walked life's narrow way."
+      }
+    ]
+  },
+  {
+    "number": "C2",
+    "title": "I Washed My Hands",
+    "first_line": "I washed my hands this morning,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "I washed my hands this morning,\nAnd gave them to the Lord;\nTo work for Jesus only,\nAccording to His word."
+      },
+      {
+        "label": "Chorus",
+        "lines": "My feet shall walk for Jesus,\nGo where He wants me to;\nFor Jesus only, always,\nIn everything I do."
+      },
+      {
+        "label": "2",
+        "lines": "My ears shall hear for Jesus,\nAll that is good and true;\nAnd everything He tells me,\nI'll gladly follow through."
+      },
+      {
+        "label": "3",
+        "lines": "My eyes shall look for Jesus,\nAnd seek the truth always;\nI need to keep them steady,\nTo serve Him all my days."
+      },
+      {
+        "label": "4",
+        "lines": "My tongue I'll give to Jesus,\nTo speak His holy name;\nTo tell of things that are right,\nAnd bring His world to fame."
+      },
+      {
+        "label": "5",
+        "lines": "I'll look to Him in all things,\nIn everything I do;\nAnd keep from sin and evil,\nIn Jesus' name so true."
+      }
+    ]
+  },
+  {
+    "number": "C3",
+    "key": "F",
+    "title": "God Sees the Little Sparrow Fall",
+    "first_line": "God sees the little sparrow fall,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "God sees the little sparrow fall,\nIt meets His tender view;\nIf God so loves the little birds,\nI know He loves me too."
+      },
+      {
+        "label": "Chorus",
+        "lines": "He loves me too, He loves me too,\nI know He loves me too;\nBecause He loves the little things,\nI know He loves me too."
+      },
+      {
+        "label": "2",
+        "lines": "He paints the lily of the field,\nPerfumes each lily bell;\nIf He so loves the little flow'rs,\nI know He loves me well."
+      },
+      {
+        "label": "3",
+        "lines": "God made the little birds and flow'rs,\nAnd all things large and small;\nHe'll not forget His little ones,\nI know He loves them all."
+      }
+    ]
+  },
+  {
+    "number": "C4",
+    "key": "Eb",
+    "title": "I Hear the Shillings Dropping",
+    "first_line": "I hear the shillings dropping,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "I hear the shillings dropping,\nDropping in the bag;\nWe give them all to Jesus,\nWho owns them all."
+      },
+      {
+        "label": "Chorus",
+        "lines": "The shillings drop, hear them dropping,\nWe give them to the Lord;\nWe give them all to Jesus,\nWho owns them every one."
+      },
+      {
+        "label": "2",
+        "lines": "We give them every morning,\nAll of us children;\nThis is our offering,\nFor us the young."
+      },
+      {
+        "label": "3",
+        "lines": "Jesus we are children,\nWe bring our gift to Thee;\nBut as we grow older,\nMore we'll gladly give."
+      },
+      {
+        "label": "4",
+        "lines": "We have this to give Thee,\nWe love Thee so much;\nThis is our sacrifice,\nFor Thy great grace."
+      }
+    ]
+  },
+  {
+    "number": "C5",
+    "key": "D",
+    "title": "Omutambuze Nze",
+    "first_line": "— English lyrics coming soon —",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "— English lyrics coming soon —"
+      }
+    ]
+  },
+  {
+    "number": "C6",
+    "key": "F",
+    "title": "Awo Yesu Bwe Yatambula",
+    "first_line": "— English lyrics coming soon —",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "— English lyrics coming soon —"
+      }
+    ]
+  },
+  {
+    "number": "C7",
+    "key": "Db",
+    "title": "Yesu Mulokozi Wange",
+    "first_line": "— English lyrics coming soon —",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "— English lyrics coming soon —"
+      }
+    ]
+  },
+  {
+    "number": "C8",
+    "title": "Happy, Happy Home",
+    "first_line": "There is beauty all around,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "There is beauty all around,\nWhen there's love at home;\nThere is joy in every sound,\nWhen there's love at home."
+      },
+      {
+        "label": "2",
+        "lines": "Jesus in our home today,\nMakes it bright and gay;\nKeeps the shadows all away,\nWhen He comes to stay."
+      },
+      {
+        "label": "3",
+        "lines": "Jesus with our mother dear,\nDrives away all fear;\nFills our home with gladsome cheer,\nWhen He's always near."
+      },
+      {
+        "label": "4",
+        "lines": "Jesus in your heart today,\nBrings the sweetest ray;\nKeeps all sin and grief away,\nEvery happy day."
+      }
+    ]
+  },
+  {
+    "number": "C8",
+    "title": "Go Little Pennies",
+    "first_line": "Go little pennies, carry the message to all;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Go little pennies, carry the message to all;\nTo the little children, that they may be saved."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Go little pennies, go tell the story;\nJesus the Lord of grace, the friend of man."
+      },
+      {
+        "label": "2",
+        "lines": "Go tell the story, all that we do here;\nThat they too may learn, just as we have learned."
+      },
+      {
+        "label": "3",
+        "lines": "Though we are little, the Lord is pleased with us;\nDoing His work here, telling the children."
+      }
+    ]
+  },
+  {
+    "number": "C9",
+    "title": "I Will Wear a Crown",
+    "first_line": "I will wear a crown up in heaven;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "I will wear a crown up in heaven;\nUp in heaven, up in heaven;\nI will wear a crown up in heaven;\nThere'll be joy, such joy."
+      },
+      {
+        "label": "2",
+        "lines": "I will play my harp up in heaven,\nUp in heaven, up in heaven,\nI will play my harp up in heaven,\nThere'll be joy, such joy."
+      },
+      {
+        "label": "3",
+        "lines": "I will wear a robe up in heaven,\nUp in heaven, up in heaven;\nI will wear a robe up in heaven,\nThere'll be joy, such joy."
+      }
+    ]
+  },
+  {
+    "number": "C10",
+    "title": "Up, Up in the Sky",
+    "first_line": "Up, up in the sky, the little birds fly;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Up, up in the sky, the little birds fly;\nDown, down in the nest the little birds rest;\nWith a wing on the left and a wing on the right,\nLet the little birds sleep all the night."
+      },
+      {
+        "label": "2",
+        "lines": "The bright sun goes down, and the darkness comes on,\nWhile the birds cease their songs;\nThe flowers and trees are at rest;\nPraise God for His wondrous gift!"
+      }
+    ]
+  },
+  {
+    "number": "C11",
+    "title": "Into My Heart",
+    "first_line": "Into my heart, into my heart,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Into my heart, into my heart,\nCome into my heart, Lord Jesus;\nCome in today, come in to stay,\nCome into my heart, Lord Jesus."
+      },
+      {
+        "label": "2",
+        "lines": "The Son, the Son, dwell in my heart;\nJesus the Son of life,\nDwell in my heart today."
+      }
+    ]
+  },
+  {
+    "number": "C12",
+    "title": "Thank You for the World so Sweet",
+    "first_line": "Thank You for the world so sweet,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Thank You for the world so sweet,\nThank You for the food we eat;\nThank You for the birds that sing,\nThank You, God, for everything."
+      },
+      {
+        "label": "2",
+        "lines": "Thank You for our home so dear,\nAnd for sunshine bright and clear;\nFor the sky so wide and fair,\nAnd for all things everywhere."
+      }
+    ]
+  },
+  {
+    "number": "C13",
+    "title": "Whisper a Prayer in the Morning",
+    "first_line": "Whisper a prayer in the morning,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Whisper a prayer in the morning,\nWhisper a prayer at noon;\nWhisper a prayer in the evening,\nTo keep your heart in tune."
+      },
+      {
+        "label": "2",
+        "lines": "Jesus will hear your praying,\nEvery hour of the day;\nJesus will hear your praying,\nAnd bless you on your way."
+      },
+      {
+        "label": "3",
+        "lines": "He may come in the morning,\nOr at the close of day;\nOr He may come at midnight,\nBe watching and ready, stay."
+      }
+    ]
+  },
+  {
+    "number": "C14",
+    "key": "Bb",
+    "title": "Missionary Band",
+    "first_line": "We are a band of children,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "We are a band of children,\nWeak and small are we;\nBut we all love Jesus,\nAnd serve Him faithfully."
+      },
+      {
+        "label": "Chorus",
+        "lines": "We are the Lord's own army,\nHis army, His army;\nWe are the Lord's own army,\nServing Him today."
+      },
+      {
+        "label": "2",
+        "lines": "There are many children,\nFar across the sea;\nWho do not know of Jesus,\nAnd need Him just like me."
+      },
+      {
+        "label": "3",
+        "lines": "We will send them teachers,\nWho will go and pray;\nThat the Lord and Savior,\nWill wash their sins away."
+      },
+      {
+        "label": "4",
+        "lines": "Jesus came to earth here,\nDied for everyone;\nThose who trust and love Him,\nShall joy when life is done."
+      }
+    ]
+  },
+  {
+    "number": "C15",
+    "title": "The Reason",
+    "first_line": "— English lyrics coming soon —",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "— English lyrics coming soon —"
+      }
+    ]
+  },
+  {
+    "number": "C16",
+    "title": "The Seventh is for Jesus",
+    "first_line": "— English lyrics coming soon —",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "— English lyrics coming soon —"
+      }
+    ]
+  },
+  {
+    "number": "C17",
+    "title": "I Will Make You Fishers of Men",
+    "first_line": "I will make you fishers of men,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "I will make you fishers of men,\nFishers of men, fishers of men;\nI will make you fishers of men,\nIf you follow Me."
+      },
+      {
+        "label": "Chorus",
+        "lines": "If you follow Me, if you follow Me;\nI will make you fishers of men,\nIf you follow Me."
+      },
+      {
+        "label": "2",
+        "lines": "Hear Christ calling, come to Me,\nCome to Me, come to Me;\nHear Christ calling, come to Me,\nAnd find your rest."
+      },
+      {
+        "label": "3",
+        "lines": "Jesus Christ is coming again,\nComing soon, coming soon;\nJesus Christ is coming again,\nTo take us home."
+      }
+    ]
+  },
+  {
+    "number": "C18",
+    "title": "Always be Cheerful",
+    "first_line": "We are children of the King,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "We are children of the King,\nHe has said, \"Be always cheerful;\"\nIn our hearts a song we'll sing,\nFor the King who loves us all."
+      },
+      {
+        "label": "Chorus",
+        "lines": "With joy in our hearts, we'll follow our Savior;\nHe fills us with gladness, every day He cheers us."
+      },
+      {
+        "label": "2",
+        "lines": "Praise the Lord who keeps us safe,\nOn the journey He is near us;\nHe has promised us His grace,\nHe will never, never leave us."
+      },
+      {
+        "label": "3",
+        "lines": "Young and old, let's be courageous,\nNever tire on the way;\nWe will never, never weaken,\nAs we labor day by day."
+      },
+      {
+        "label": "4",
+        "lines": "When the enemy grows strong,\nAnd our hearts begin to tremble;\nFear of foes shall not prevail,\nFor our joy shall never dwindle."
+      }
+    ]
+  },
+  {
+    "number": "C19",
+    "title": "This Little Light of Mine",
+    "first_line": "This little light of mine, I'm gonna let it shine;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "This little light of mine, I'm gonna let it shine;\nThis little light of mine, I'm gonna let it shine; Let it shine x3"
+      },
+      {
+        "label": "2",
+        "lines": "Hide it under a bushel? No! I'm gonna let it shine,\nHide it under a bushel? No! I'm gonna let it shine; Let it shine x3"
+      },
+      {
+        "label": "3",
+        "lines": "Won't let Satan blow it out, I'm gonna let it shine,\nWon't let Satan blow it out, I'm gonna let it shine; Let it shine x3"
+      },
+      {
+        "label": "4",
+        "lines": "Jesus is coming soon, I'm gonna let it shine,\nJesus is coming soon, I'm gonna let it shine; Let it shine x3"
+      },
+      {
+        "label": "5",
+        "lines": "Let it shine till Jesus comes, I'm gonna let it shine,\nLet it shine till Jesus comes, I'm gonna let it shine; Let it shine x3"
+      }
+    ]
+  },
+  {
+    "number": "C20",
+    "title": "The Trees are Gently Swaying",
+    "first_line": "The trees are gently swaying, swaying, swaying;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "The trees are gently swaying, swaying, swaying;\nThe trees are gently swaying, God loves us."
+      },
+      {
+        "label": "2",
+        "lines": "The butterflies are flying, flying, flying;\nThe butterflies are flying, God loves us."
+      },
+      {
+        "label": "3",
+        "lines": "The birds are gently singing, singing, singing;\nThe birds are gently singing, God loves us."
+      },
+      {
+        "label": "4",
+        "lines": "The flowers are gently swaying, swaying, swaying;\nThe flowers are gently swaying, God loves us."
+      },
+      {
+        "label": "5",
+        "lines": "And we are gently swaying, swaying, swaying;\nAnd we are gently swaying, God loves us."
+      }
+    ]
+  },
+  {
+    "number": "C21",
+    "title": "I'm a Little Star for Jesus",
+    "first_line": "I'm a little star for Jesus, shining through the night;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "I'm a little star for Jesus, shining through the night;\nI'm a little star for Jesus, shining with His light."
+      },
+      {
+        "label": "Chorus",
+        "lines": "I'm a little star of gladness;\n(I'm a little star for Jesus.) x2"
+      },
+      {
+        "label": "2",
+        "lines": "I'm a little star for Jesus, I will never dim;\nI'm a little star for Jesus, always shining for Him."
+      },
+      {
+        "label": "3",
+        "lines": "I'm a little star for Jesus, in this world of sin;\nShining bright for Jesus, till He comes again."
+      }
+    ]
+  },
+  {
+    "number": "C22",
+    "title": "Jesus Loves the Little Children",
+    "first_line": "Jesus loves the little children, all the children of the world;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Jesus loves the little children, all the children of the world;\nHe will never turn them away, He has called them all to stay,\nAnd He cares for every child from far away."
+      },
+      {
+        "label": "Chorus",
+        "lines": "Jesus loves the little children, all the children of the world;\nRed and yellow, black and white, they are precious in His sight;\nJesus loves the little children of the world."
+      },
+      {
+        "label": "2",
+        "lines": "Millions die in lands afar, in the dark and lonely places;\nThey know not the love of Jesus, let us pray and let us give;\nThat they too may know the glory that awaits them."
+      },
+      {
+        "label": "3",
+        "lines": "Let us tell it everywhere, of the goodness of our Savior;\nLet the gospel spread to all tongues, let us sing and let us shout,\nOur Redeemer; and all people praise His name forever."
+      }
+    ]
+  },
+  {
+    "number": "C23",
+    "title": "Praise Him! Little Children",
+    "first_line": "Praise Him, praise Him, all ye little children,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Praise Him, praise Him, all ye little children,\nGod is love, God is love;\nPraise Him, praise Him, all ye little children,\nGod is love, God is love."
+      },
+      {
+        "label": "2",
+        "lines": "Love Him, love Him, all ye little children,\nGod is love, God is love;\nLove Him, love Him, all ye little children,\nGod is love, God is love."
+      },
+      {
+        "label": "3",
+        "lines": "Serve Him, serve Him, all ye little children,\nGod is love, God is love;\nServe Him, serve Him, all ye little children,\nGod is love, God is love."
+      }
+    ]
+  },
+  {
+    "number": "C24",
+    "title": "God Made Me",
+    "first_line": "Each morning says, \"God made me wonderfully well!\"",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Each morning says, \"God made me wonderfully well!\"\nEach morning says, \"He made me on the first day.\""
+      },
+      {
+        "label": "2",
+        "lines": "The clouds all say, \"He made me wonderfully well!\"\nThe clouds all say, \"He made me on the second day.\""
+      },
+      {
+        "label": "3",
+        "lines": "The flowers all say, \"He made me wonderfully well!\"\nThe flowers all say, \"He made me on the third day.\""
+      },
+      {
+        "label": "4",
+        "lines": "The twinkling stars say, \"He made us wonderfully well!\"\nAll the stars say, \"He made us on the fourth day.\""
+      },
+      {
+        "label": "5",
+        "lines": "The mother hen says, \"God made me wonderfully well!\"\nThe mother hen says, \"He made me on the fifth day.\""
+      },
+      {
+        "label": "6",
+        "lines": "The man and woman say, \"He made us wonderfully well!\"\nIn the image of God truly, \"On the sixth day.\""
+      },
+      {
+        "label": "7",
+        "lines": "The Sabbath day says, \"He made me wonderfully well!\"\nWith blessing and with honour, \"On the seventh day.\""
+      }
+    ]
+  },
+  {
+    "number": "C25",
+    "title": "Give Me Oil in My Lamp",
+    "first_line": "Give me oil in my lamp, keep me burning;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Give me oil in my lamp, keep me burning;\nGive me oil in my lamp, I pray;\nGive me oil in my lamp, keep me burning,\nKeep me burning till the break of day,"
+      },
+      {
+        "label": "Chorus",
+        "lines": "Sing hosanna, sing hosanna,\nSing hosanna to the King of kings! x2"
+      }
+    ]
+  },
+  {
+    "number": "C26",
+    "title": "We Thank Thee",
+    "first_line": "We thank Thee, Jesus, for Thy love;",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "We thank Thee, Jesus, for Thy love;\nAnd for the many blessings Thou hast given."
+      },
+      {
+        "label": "2",
+        "lines": "For keeping us and clothing us;\nAnd life and joy and happiness Thou givest."
+      },
+      {
+        "label": "3",
+        "lines": "In our homes and with our families;\nFor all Thy gifts we praise Thee, Lord Jesus."
+      }
+    ]
+  },
+  {
+    "number": "C27",
+    "title": "Bring Ye All the Tithes",
+    "first_line": "Bring ye all the tithes into the storehouse,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Bring ye all the tithes into the storehouse,\nBring them all to Me this day;\nI will pour you out a blessing,\nThere shall be no lack for aye."
+      }
+    ]
+  },
+  {
+    "number": "C28",
+    "title": "Goodbye Song",
+    "first_line": "Now we've come to the end, we're going home,",
+    "verses": [
+      {
+        "label": "1",
+        "lines": "Now we've come to the end, we're going home,\nGoodbye, goodbye, may God keep you safe;\nGoodbye, goodbye, may God watch over you."
+      }
+    ]
+  }
+]
