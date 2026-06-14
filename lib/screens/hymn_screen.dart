@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/hymn.dart';
 import '../providers/providers.dart';
+import '../services/audio_service.dart';
 import '../widgets/language_toggle.dart';
 import '../widgets/verse_display.dart';
 
@@ -23,7 +24,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   final Map<int, ScrollController> _scrollControllers = {};
   final Map<int, List<GlobalKey>> _verseKeysByPage = {};
 
-  // ── Font size buttons visibility ──
   bool _showFontButtons = true;
   Timer? _fontButtonTimer;
 
@@ -47,9 +47,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
 
   int _compareNumbers(dynamic a, dynamic b) {
     if (a is int && b is int) return a.compareTo(b);
-    if (a is int) return -1; // regular hymns sort before children's songs
+    if (a is int) return -1;
     if (b is int) return 1;
-    // Both are string numbers — natural sort so C2 < C10 (not lexicographic)
     final re = RegExp(r'^([A-Za-z]*)(\d+)$');
     final aM = re.firstMatch(a.toString());
     final bM = re.firstMatch(b.toString());
@@ -73,45 +72,32 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   }
 
   Future<void> _scrollToVerse(int pageIndex, int verseIndex) async {
-    final current = _activeVerseByPage[pageIndex] ?? 0;
-    final keys = _verseKeysByPage[pageIndex];
-    final verseCount = keys?.length ?? 0;
-    final isLast = verseIndex == verseCount - 1;
-    final targetIndex = (verseIndex == current && isLast) ? 0 : verseIndex;
+    setState(() => _activeVerseByPage[pageIndex] = verseIndex);
 
-    setState(() => _activeVerseByPage[pageIndex] = targetIndex);
-
-    final targetKeys = _verseKeysByPage[pageIndex];
     final scrollCtrl = _scrollControllers[pageIndex];
-    if (targetKeys == null || targetIndex >= targetKeys.length) return;
     if (scrollCtrl == null) return;
 
-    // Step 1: jump to top so all items are laid out
-    scrollCtrl.jumpTo(0);
-    if (targetIndex == 0) return;
+    if (verseIndex == 0) {
+      await scrollCtrl.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      return;
+    }
 
-    // Step 2: wait one frame for layout
     await WidgetsBinding.instance.endOfFrame;
 
-    final ctx = targetKeys[targetIndex].currentContext;
+    final targetKeys = _verseKeysByPage[pageIndex];
+    if (targetKeys == null || verseIndex >= targetKeys.length) return;
+    final ctx = targetKeys[verseIndex].currentContext;
     if (ctx == null || !ctx.mounted) return;
 
-    final renderObj = ctx.findRenderObject() as RenderBox?;
-    if (renderObj == null) return;
-
-    final scrollBox = scrollCtrl.position.context.storageContext
-        .findRenderObject() as RenderBox?;
-    if (scrollBox == null) return;
-
-    final itemOffset =
-        renderObj.localToGlobal(Offset.zero, ancestor: scrollBox).dy;
-    final target =
-        (itemOffset - 20).clamp(0.0, scrollCtrl.position.maxScrollExtent);
-
-    await scrollCtrl.animateTo(
-      target,
+    await Scrollable.ensureVisible(
+      ctx,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
+      alignment: 0.05,
     );
   }
 
@@ -120,6 +106,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     _activeVerseByPage.remove(index);
     _verseKeysByPage.remove(index);
     ref.read(recentlyViewedProvider.notifier).record(hymns[index].number);
+    ref.read(hymnAudioProvider.notifier).stop();
   }
 
   void _share(Hymn hymn, String lang) {
@@ -148,7 +135,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     );
   }
 
-  void _showAudioComingSoon(BuildContext context) {
+  void _showNoAudio(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
@@ -156,7 +143,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => const _AudioComingSoonSheet(),
+      builder: (_) => const _NoAudioSheet(),
     );
   }
 
@@ -165,6 +152,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     final lang = ref.watch(languageProvider);
     final fontSize = ref.watch(fontSizeProvider);
     final favourites = ref.watch(favouritesProvider);
+    final audioState = ref.watch(hymnAudioProvider);
     final cs = Theme.of(context).colorScheme;
     final accent = cs.primary;
     final hymnsAsync = lang == 'en'
@@ -185,8 +173,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       ),
       error: (e, _) => Scaffold(
         backgroundColor: bg,
-        body:
-            Center(child: Text('Error: $e', style: TextStyle(color: dimColor))),
+        body: Center(
+            child: Text('Error: $e', style: TextStyle(color: dimColor))),
       ),
       data: (hymns) {
         final sorted = [...hymns]
@@ -209,7 +197,13 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
         final isLast = _currentIndex == sorted.length - 1;
         final hasHistory = currentHymn.history != null;
 
-        // Start font button timer on first build
+        // ── Audio state for current hymn ──
+        final hasAudio = HymnAudioNotifier.hasAudio(currentHymn.number);
+        final isThisHymn = audioState.currentHymn?.toString() ==
+            currentHymn.number.toString();
+        final isThisPlaying = isThisHymn && audioState.isPlaying;
+        final isThisLoading = isThisHymn && audioState.isLoading;
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _showFontButtons) _showFontButtonsTemporarily();
         });
@@ -233,16 +227,19 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                             _IconBtn(
                               icon: Icons.arrow_back,
                               color: dimColor,
-                              onTap: () => Navigator.of(context).pop(),
+                              onTap: () {
+                                ref.read(hymnAudioProvider.notifier).stop();
+                                Navigator.of(context).pop();
+                              },
                             ),
                             const Spacer(),
-                            // ── History icon ──
                             _IconBtn(
                               icon: Icons.history_edu_outlined,
                               color: hasHistory ? accent : dimColor,
                               onTap: () {
-                                if (hasHistory)
+                                if (hasHistory) {
                                   _showHistory(context, currentHymn);
+                                }
                               },
                             ),
                             const SizedBox(width: 16),
@@ -296,8 +293,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                               const SizedBox(height: 6),
                               RichText(
                                 text: TextSpan(
-                                  style:
-                                      TextStyle(fontSize: 13, color: dimColor),
+                                  style: TextStyle(
+                                      fontSize: 13, color: dimColor),
                                   children: [
                                     const TextSpan(text: 'Doh is '),
                                     TextSpan(
@@ -322,7 +319,14 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                         accent: accent,
                         badgeBg: badgeBg,
                         badgeFg: badgeFg,
-                        onTap: (i) => _scrollToVerse(_currentIndex, i),
+                        onTap: (i) {
+                          final current =
+                              _activeVerseByPage[_currentIndex] ?? 0;
+                          final verseCount = currentHymn.verses.length;
+                          final target =
+                              (i == current) ? (current + 1) % verseCount : i;
+                          _scrollToVerse(_currentIndex, target);
+                        },
                       ),
 
                       // ── PageView ──
@@ -335,50 +339,83 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                             final hymn = sorted[pageIndex];
                             final verseKeys =
                                 _verseKeysFor(pageIndex, hymn.verses.length);
-                            final scrollCtrl = _scrollControllerFor(pageIndex);
-                            return ListView.builder(
+                            final scrollCtrl =
+                                _scrollControllerFor(pageIndex);
+                            return SingleChildScrollView(
                               controller: scrollCtrl,
                               padding:
                                   const EdgeInsets.fromLTRB(20, 12, 20, 40),
-                              itemCount: hymn.verses.length,
-                              itemBuilder: (_, i) => VerseDisplay(
-                                key: verseKeys[i],
-                                verse: hymn.verses[i],
-                                fontSize: fontSize,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(
+                                  hymn.verses.length,
+                                  (i) => VerseDisplay(
+                                    key: verseKeys[i],
+                                    verse: hymn.verses[i],
+                                    fontSize: fontSize,
+                                  ),
+                                ),
                               ),
                             );
                           },
                         ),
                       ),
 
-                      // ── Prev / Next bar + Audio play button ──
+                      // ── Bottom bar ──
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                         child: Row(
                           children: [
-                            // Audio play button
+                            // ── Play / Pause button ──
                             GestureDetector(
-                              onTap: () => _showAudioComingSoon(context),
-                              child: Container(
+                              onTap: hasAudio
+                                  ? () => ref
+                                      .read(hymnAudioProvider.notifier)
+                                      .toggle(currentHymn.number)
+                                  : () => _showNoAudio(context),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
                                 width: 46,
                                 height: 46,
                                 decoration: BoxDecoration(
-                                  color: surfaceColor,
+                                  color: isThisPlaying
+                                      ? accent.withValues(alpha: 0.15)
+                                      : surfaceColor,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: accent.withValues(alpha: 0.3),
+                                    color: hasAudio
+                                        ? accent.withValues(alpha: 0.5)
+                                        : accent.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
                                 ),
-                                child: Icon(
-                                  Icons.play_arrow_rounded,
-                                  color: dimColor,
-                                  size: 24,
+                                child: Center(
+                                  child: isThisLoading
+                                      ? SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            color: accent,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Icon(
+                                          isThisPlaying
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
+                                          color: hasAudio
+                                              ? (isThisHymn
+                                                  ? accent
+                                                  : dimColor)
+                                              : dimColor.withValues(alpha: 0.4),
+                                          size: 24,
+                                        ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            // Nav pill
+
+                            // ── Prev / Next pill ──
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
@@ -394,9 +431,10 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                                       enabled: !isFirst,
                                       accent: accent,
                                       dimColor: dimColor,
-                                      onTap: () => _pageController.previousPage(
-                                        duration:
-                                            const Duration(milliseconds: 300),
+                                      onTap: () =>
+                                          _pageController.previousPage(
+                                        duration: const Duration(
+                                            milliseconds: 300),
                                         curve: Curves.easeInOut,
                                       ),
                                     ),
@@ -421,8 +459,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                                       accent: accent,
                                       dimColor: dimColor,
                                       onTap: () => _pageController.nextPage(
-                                        duration:
-                                            const Duration(milliseconds: 300),
+                                        duration: const Duration(
+                                            milliseconds: 300),
                                         curve: Curves.easeInOut,
                                       ),
                                     ),
@@ -433,11 +471,22 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                           ],
                         ),
                       ),
+
+                      // ── Progress bar (visible only while audio is active) ──
+                      if (isThisHymn &&
+                          (isThisPlaying || audioState.isPaused) &&
+                          audioState.total > Duration.zero)
+                        _AudioProgressBar(
+                          position: audioState.position,
+                          total: audioState.total,
+                          accent: accent,
+                          dimColor: dimColor,
+                        ),
                     ],
                   ),
                 ),
 
-                // ── Floating A+ / A- buttons ──
+                // ── Floating A+ / A- ──
                 Positioned(
                   right: 12,
                   bottom: 100,
@@ -480,25 +529,71 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   }
 }
 
+// ── Audio progress bar ──
+class _AudioProgressBar extends StatelessWidget {
+  final Duration position;
+  final Duration total;
+  final Color accent;
+  final Color dimColor;
+
+  const _AudioProgressBar({
+    required this.position,
+    required this.total,
+    required this.accent,
+    required this.dimColor,
+  });
+
+  String _fmt(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = total.inMilliseconds > 0
+        ? (position.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0)
+        : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Row(
+        children: [
+          Text(_fmt(position),
+              style: TextStyle(fontSize: 10, color: dimColor)),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 3,
+                  color: accent,
+                  backgroundColor: accent.withValues(alpha: 0.15),
+                ),
+              ),
+            ),
+          ),
+          Text(_fmt(total),
+              style: TextStyle(fontSize: 10, color: dimColor)),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Icon button ──
 class _IconBtn extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
-
-  const _IconBtn({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
+  const _IconBtn(
+      {required this.icon, required this.color, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Icon(icon, size: 22, color: color),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+      onTap: onTap, child: Icon(icon, size: 22, color: color));
 }
 
 // ── Prev/Next arrow ──
@@ -508,14 +603,12 @@ class _NavArrow extends StatelessWidget {
   final Color accent;
   final Color dimColor;
   final VoidCallback onTap;
-
-  const _NavArrow({
-    required this.icon,
-    required this.enabled,
-    required this.accent,
-    required this.dimColor,
-    required this.onTap,
-  });
+  const _NavArrow(
+      {required this.icon,
+      required this.enabled,
+      required this.accent,
+      required this.dimColor,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -603,12 +696,11 @@ class _FontSizeButton extends StatelessWidget {
   final bool enabled;
   final ColorScheme cs;
 
-  const _FontSizeButton({
-    required this.label,
-    required this.onTap,
-    required this.enabled,
-    required this.cs,
-  });
+  const _FontSizeButton(
+      {required this.label,
+      required this.onTap,
+      required this.enabled,
+      required this.cs});
 
   @override
   Widget build(BuildContext context) {
@@ -622,7 +714,8 @@ class _FontSizeButton extends StatelessWidget {
           color: enabled ? cs.primary : cs.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: enabled ? cs.primary : cs.outline.withValues(alpha: 0.3),
+            color:
+                enabled ? cs.primary : cs.outline.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: enabled
@@ -641,8 +734,9 @@ class _FontSizeButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color:
-                  enabled ? Colors.white : cs.onSurface.withValues(alpha: 0.3),
+              color: enabled
+                  ? Colors.white
+                  : cs.onSurface.withValues(alpha: 0.3),
             ),
           ),
         ),
@@ -674,7 +768,6 @@ class _HistorySheet extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle
             Center(
               child: Container(
                 width: 40,
@@ -686,25 +779,19 @@ class _HistorySheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Title
-            Text(
-              'Song History',
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w700, color: titleColor),
-            ),
+            Text('Song History',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor)),
             const SizedBox(height: 4),
-            Text(
-              'Hymn ${hymn.number} · ${hymn.title}',
-              style: TextStyle(
-                  fontSize: 12,
-                  color: accent,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5),
-            ),
+            Text('Hymn ${hymn.number} · ${hymn.title}',
+                style: TextStyle(
+                    fontSize: 12,
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5)),
             const SizedBox(height: 16),
-
-            // Meta pills
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -719,17 +806,11 @@ class _HistorySheet extends StatelessWidget {
                   _MetaPill(label: '🎼 ${h.tune}', accent: accent),
               ],
             ),
-
             if (h.story != null) ...[
               const SizedBox(height: 20),
-              Text(
-                h.story!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: dimColor,
-                  height: 1.75,
-                ),
-              ),
+              Text(h.story!,
+                  style: TextStyle(
+                      fontSize: 14, color: dimColor, height: 1.75)),
             ],
           ],
         ),
@@ -752,23 +833,22 @@ class _MetaPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: accent.withValues(alpha: 0.25)),
       ),
-      child: Text(
-        label,
-        style:
-            TextStyle(fontSize: 12, color: accent, fontWeight: FontWeight.w600),
-      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 12,
+              color: accent,
+              fontWeight: FontWeight.w600)),
     );
   }
 }
 
-// ── Audio Coming Soon Sheet ──
-class _AudioComingSoonSheet extends StatelessWidget {
-  const _AudioComingSoonSheet();
+// ── No Audio Sheet ──
+class _NoAudioSheet extends StatelessWidget {
+  const _NoAudioSheet();
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
       child: Column(
@@ -792,27 +872,23 @@ class _AudioComingSoonSheet extends StatelessWidget {
               border: Border.all(
                   color: cs.primary.withValues(alpha: 0.3), width: 1.5),
             ),
-            child: Icon(
-              Icons.headphones_outlined,
-              color: cs.primary,
-              size: 30,
-            ),
+            child: Icon(Icons.headphones_outlined,
+                color: cs.primary, size: 30),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Audio Coming Soon',
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w700, color: cs.onSurface),
-          ),
+          Text('No Audio Yet',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface)),
           const SizedBox(height: 8),
           Text(
-            'We are working on bringing hymn audio to Tendereza. Stay tuned!',
+            "Instrumental audio for this hymn hasn't been added yet. Check back in a future update!",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
-              color: cs.onSurface.withValues(alpha: 0.65),
-              height: 1.6,
-            ),
+                fontSize: 14,
+                color: cs.onSurface.withValues(alpha: 0.65),
+                height: 1.6),
           ),
           const SizedBox(height: 24),
           FilledButton(

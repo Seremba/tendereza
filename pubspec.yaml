@@ -1,21 +1,19 @@
 name: sda_hymnal
 description: SDA Hymn Book — English & Luganda, offline-first.
 publish_to: 'none'
-version: 1.0.1+12
+version: 1.0.1+13
 environment:
   sdk: '>=3.3.0 <4.0.0'
 dependencies:
   flutter:
     sdk: flutter
-  # State management
   flutter_riverpod: ^2.5.1
-  # Persistence
   shared_preferences: ^2.2.3
-  # Sharing
   share_plus: ^9.0.0
-  # Fonts
   google_fonts: ^6.2.1
   screen_brightness: ^0.2.2
+  audioplayers: ^6.0.0   
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
