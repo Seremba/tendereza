@@ -1,9 +1,11 @@
 name: sda_hymnal
 description: SDA Hymn Book — English & Luganda, offline-first.
 publish_to: 'none'
-version: 1.0.1+13
+version: 1.0.1+14
+
 environment:
   sdk: '>=3.3.0 <4.0.0'
+
 dependencies:
   flutter:
     sdk: flutter
@@ -12,19 +14,33 @@ dependencies:
   share_plus: ^9.0.0
   google_fonts: ^6.2.1
   screen_brightness: ^0.2.2
-  audioplayers: ^6.0.0   
+  audioplayers: ^6.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/tendereza_icon_1024.png"
+  adaptive_icon_background: "#042C53"
+  adaptive_icon_foreground: "assets/icon/tendereza_icon_1024.png"
+  min_sdk_android: 21
+
 flutter:
   uses-material-design: true
+
   assets:
     - assets/data/hymns_en.json
     - assets/data/hymns_lg.json
     - assets/data/songs_ch_en.json
     - assets/data/songs_ch_lg.json
+    - assets/icon/
+    - assets/audio/
+
   fonts:
     - family: Lato
       fonts:
