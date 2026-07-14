@@ -122,19 +122,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     Share.share(sb.toString(), subject: '${hymn.number}. ${hymn.title}');
   }
 
-  void _showHistory(BuildContext context, Hymn hymn) {
-    final cs = Theme.of(context).colorScheme;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: cs.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _HistorySheet(hymn: hymn),
-    );
-  }
-
   void _showNoAudio(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     showModalBottomSheet(
@@ -195,7 +182,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
         final activeVerse = _activeVerseByPage[_currentIndex] ?? 0;
         final isFirst = _currentIndex == 0;
         final isLast = _currentIndex == sorted.length - 1;
-        final hasHistory = currentHymn.history != null;
 
         // ── Audio state for current hymn ──
         final hasAudio = HymnAudioNotifier.hasAudio(currentHymn.number);
@@ -233,16 +219,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                               },
                             ),
                             const Spacer(),
-                            _IconBtn(
-                              icon: Icons.history_edu_outlined,
-                              color: hasHistory ? accent : dimColor,
-                              onTap: () {
-                                if (hasHistory) {
-                                  _showHistory(context, currentHymn);
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 16),
                             _IconBtn(
                               icon: isFav
                                   ? Icons.favorite
@@ -741,103 +717,6 @@ class _FontSizeButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-// ── History Sheet ──
-class _HistorySheet extends StatelessWidget {
-  final Hymn hymn;
-  const _HistorySheet({required this.hymn});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final h = hymn.history!;
-    final titleColor = cs.onSurface;
-    final dimColor = cs.onSurface.withValues(alpha: 0.75);
-    final accent = cs.primary;
-
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.6,
-      maxChildSize: 0.92,
-      builder: (_, scrollController) => SingleChildScrollView(
-        controller: scrollController,
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: cs.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text('Song History',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: titleColor)),
-            const SizedBox(height: 4),
-            Text('Hymn ${hymn.number} · ${hymn.title}',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: accent,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5)),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (h.year != null)
-                  _MetaPill(label: '📅 ${h.year}', accent: accent),
-                if (h.author != null)
-                  _MetaPill(label: '✍️ ${h.author}', accent: accent),
-                if (h.composer != null)
-                  _MetaPill(label: '🎵 ${h.composer}', accent: accent),
-                if (h.tune != null)
-                  _MetaPill(label: '🎼 ${h.tune}', accent: accent),
-              ],
-            ),
-            if (h.story != null) ...[
-              const SizedBox(height: 20),
-              Text(h.story!,
-                  style: TextStyle(
-                      fontSize: 14, color: dimColor, height: 1.75)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetaPill extends StatelessWidget {
-  final String label;
-  final Color accent;
-  const _MetaPill({required this.label, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withValues(alpha: 0.25)),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 12,
-              color: accent,
-              fontWeight: FontWeight.w600)),
     );
   }
 }
