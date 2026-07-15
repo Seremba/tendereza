@@ -2,9 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import '../app.dart';
 import '../models/hymn.dart';
 import '../providers/providers.dart';
 import '../services/audio_service.dart';
+import '../widgets/appearance_sheet.dart';
 import '../widgets/language_toggle.dart';
 import '../widgets/verse_display.dart';
 
@@ -122,6 +124,19 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     Share.share(sb.toString(), subject: '${hymn.number}. ${hymn.title}');
   }
 
+  void _showAppearanceSheet(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: cs.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const AppearanceSheet(),
+    );
+  }
+
   void _showNoAudio(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     showModalBottomSheet(
@@ -140,8 +155,17 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     final fontSize = ref.watch(fontSizeProvider);
     final favourites = ref.watch(favouritesProvider);
     final audioState = ref.watch(hymnAudioProvider);
+    final appTheme = ref.watch(appThemeProvider);
     final cs = Theme.of(context).colorScheme;
     final accent = cs.primary;
+
+    final themeIcon = switch (appTheme) {
+      TenderezaTheme.light => Icons.light_mode_outlined,
+      TenderezaTheme.sepia => Icons.auto_awesome_outlined,
+      TenderezaTheme.dark  => Icons.dark_mode_outlined,
+      TenderezaTheme.black => Icons.bedtime_outlined,
+      TenderezaTheme.gold  => Icons.stars_outlined,
+    };
     final hymnsAsync = lang == 'en'
         ? ref.watch(englishHymnsProvider)
         : ref.watch(lugandaHymnsProvider);
@@ -219,6 +243,14 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                               },
                             ),
                             const Spacer(),
+                            // ── Appearance ──
+                            _IconBtn(
+                              icon: themeIcon,
+                              color: dimColor,
+                              onTap: () => _showAppearanceSheet(context),
+                            ),
+                            const SizedBox(width: 16),
+                            // ── Favourite ──
                             _IconBtn(
                               icon: isFav
                                   ? Icons.favorite
