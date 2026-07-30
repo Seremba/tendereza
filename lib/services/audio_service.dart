@@ -1,7 +1,12 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Add a hymn number (as String) here each time you drop an audio file into
+/// assets/audio/. Format: '1', '23', 'C1', 'C19' etc.
+/// The play button lights up automatically for any number in this set.
 const Set<String> kHymnsWithAudio = {};
+
+// ─── State ───────────────────────────────────────────────────────────────────
 
 enum HymnAudioStatus { idle, loading, playing, paused, error }
 
@@ -38,6 +43,7 @@ class HymnAudioState {
       );
 }
 
+// ─── Notifier ─────────────────────────────────────────────────────────────────
 
 class HymnAudioNotifier extends StateNotifier<HymnAudioState> {
   HymnAudioNotifier() : super(const HymnAudioState()) {
@@ -83,7 +89,9 @@ class HymnAudioNotifier extends StateNotifier<HymnAudioState> {
           currentHymn: hymnNumber,
         );
         await _player.stop();
-        await _player.play(AssetSource('audio/$numStr.mp3'));
+        // .mid files play natively on Android via MediaPlayer.
+        // iOS does not support MIDI — the play button is hidden on iOS (see hymn_screen.dart).
+        await _player.play(AssetSource('audio/$numStr.mid'));
       }
     } catch (_) {
       state = state.copyWith(status: HymnAudioStatus.error);

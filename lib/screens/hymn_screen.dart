@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:in_app_review/in_app_review.dart';
 import '../app.dart';
 import '../models/hymn.dart';
 import '../providers/providers.dart';
@@ -109,6 +110,21 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     _verseKeysByPage.remove(index);
     ref.read(recentlyViewedProvider.notifier).record(hymns[index].number);
     ref.read(hymnAudioProvider.notifier).stop();
+    _maybeRequestReview();
+  }
+
+  /// Triggers the in-app review prompt once the user has opened 5 hymns.
+  /// Google controls whether the popup actually appears — it will never
+  /// show more than once every few weeks and is suppressed for users
+  /// who have already reviewed the app.
+  Future<void> _maybeRequestReview() async {
+    final recentCount = ref.read(recentlyViewedProvider).length;
+    if (recentCount == 5) {
+      final inAppReview = InAppReview.instance;
+      if (await inAppReview.isAvailable()) {
+        await inAppReview.requestReview();
+      }
+    }
   }
 
   void _share(Hymn hymn, String lang) {
@@ -121,6 +137,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       sb.writeln();
     }
     sb.writeln('Shared from Tendereza — SDA Hymnal');
+    sb.writeln('Download: https://play.google.com/store/apps/details?id=com.sericklabs.tendereza');
     Share.share(sb.toString(), subject: '${hymn.number}. ${hymn.title}');
   }
 
