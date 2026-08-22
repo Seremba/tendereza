@@ -63,8 +63,42 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     return a.toString().compareTo(b.toString());
   }
 
-  ScrollController _scrollControllerFor(int index) =>
-      _scrollControllers.putIfAbsent(index, () => ScrollController());
+  ScrollController _scrollControllerFor(int index) {
+    if (_scrollControllers.containsKey(index)) return _scrollControllers[index]!;
+    final controller = ScrollController();
+    // Update active verse chip as user scrolls manually
+    controller.addListener(() => _onScroll(index));
+    _scrollControllers[index] = controller;
+    return controller;
+  }
+
+  /// Detects which verse is currently in view as the user scrolls
+  /// and updates the active chip accordingly.
+  void _onScroll(int pageIndex) {
+    final keys = _verseKeysByPage[pageIndex];
+    if (keys == null || keys.isEmpty) return;
+
+    // Threshold: roughly the height of the fixed header above the PageView
+    // (status bar + top bar + hymn header + chip bar ≈ 220px)
+    const threshold = 220.0;
+
+    int detected = 0;
+    for (int i = 0; i < keys.length; i++) {
+      final ctx = keys[i].currentContext;
+      if (ctx == null) continue;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null) continue;
+      final topY = box.localToGlobal(Offset.zero).dy;
+      // Keep updating detected as long as the verse top
+      // has passed the threshold — the last one that qualifies
+      // is the verse currently in view
+      if (topY <= threshold) detected = i;
+    }
+
+    if (_activeVerseByPage[pageIndex] != detected) {
+      setState(() => _activeVerseByPage[pageIndex] = detected);
+    }
+  }
 
   List<GlobalKey> _verseKeysFor(int index, int verseCount) {
     final existing = _verseKeysByPage[index];

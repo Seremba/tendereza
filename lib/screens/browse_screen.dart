@@ -193,7 +193,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                                     color: accent.withValues(alpha: 0.3)),
                               ),
                               child: Text(
-                                '${hymns.length} ${lang == 'lg' ? 'emiyimba' : hymns.length == 1 ? 'hymn found' : 'hymns found'}',
+                                '${hymns.length} ${lang == 'lg' ? 'enyimba' : hymns.length == 1 ? 'hymn found' : 'hymns found'}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -268,8 +268,8 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   String _sectionLabel(String lang, _BrowseTab tab) {
     if (lang == 'lg') {
       return tab == _BrowseTab.children
-          ? 'ENNYIMBA Z\'ABAANA'
-          : 'EMIYIMBA GYONNA';
+          ? 'ENYIMBA Z\'ABAANA'
+          : 'ENYIMBA ZONNA';
     }
     return tab == _BrowseTab.children ? 'CHILDREN\'S SONGS' : 'ALL HYMNS';
   }
@@ -297,7 +297,7 @@ class _BrowseTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabs = [
       (tab: _BrowseTab.all, label: lang == 'lg' ? 'Byonna' : 'All'),
-      (tab: _BrowseTab.hymns, label: lang == 'lg' ? 'Emiyimba (1–250)' : 'Hymns (1–250)'),
+      (tab: _BrowseTab.hymns, label: lang == 'lg' ? 'Enyimba (1–250)' : 'Hymns (1–250)'),
       (tab: _BrowseTab.children, label: lang == 'lg' ? 'Ab\'aana' : 'Children\'s'),
     ];
 

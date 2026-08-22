@@ -192,7 +192,7 @@ class FavouritesScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Text(
                 lang == 'lg'
-                    ? '${favHymns.length} EMIYIMBA GYOKWAGALA'
+                    ? '${favHymns.length} ENYIMBA ZOKWAGALA'
                     : '${favHymns.length} FAVOURITE${favHymns.length == 1 ? '' : 'S'}',
                 style: TextStyle(
                   fontSize: 11,

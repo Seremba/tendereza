@@ -15,6 +15,7 @@ class NumpadScreen extends ConsumerStatefulWidget {
 
 class _NumpadScreenState extends ConsumerState<NumpadScreen> {
   String _input = '';
+  bool _isChildrenMode = false;
 
   void _openHymn(dynamic number) {
     ref.read(recentlyViewedProvider.notifier).record(number);
@@ -27,7 +28,9 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
   }
 
   void _press(String digit) {
-    if (_input.length >= 3) return;
+    // Children's songs go up to C28 — 2 digits max; hymns up to 250 — 3 digits max
+    final maxLen = _isChildrenMode ? 2 : 3;
+    if (_input.length >= maxLen) return;
     HapticFeedback.lightImpact();
     setState(() => _input += digit);
   }
@@ -38,11 +41,18 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
     setState(() => _input = _input.substring(0, _input.length - 1));
   }
 
-    int _compareNumbers(dynamic a, dynamic b) {
+  void _setMode(bool children) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isChildrenMode = children;
+      _input = '';
+    });
+  }
+
+  int _compareNumbers(dynamic a, dynamic b) {
     if (a is int && b is int) return a.compareTo(b);
     if (a is int) return -1;
     if (b is int) return 1;
-    // Natural sort so C2 < C10 (not lexicographic)
     final re = RegExp(r'^([A-Za-z]*)(\d+)$');
     final aM = re.firstMatch(a.toString());
     final bM = re.firstMatch(b.toString());
@@ -54,11 +64,12 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
     return a.toString().compareTo(b.toString());
   }
 
-
   List<Hymn> _filtered(List<Hymn> hymns) {
     if (_input.isEmpty) return [];
+    // In children's mode prefix with 'C' so "19" matches "C19"
+    final query = _isChildrenMode ? 'C$_input' : _input;
     return hymns
-        .where((h) => h.number.toString().startsWith(_input))
+        .where((h) => h.number.toString().startsWith(query))
         .toList()
       ..sort((a, b) => _compareNumbers(a.number, b.number));
   }
@@ -74,6 +85,10 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
     final favourites = ref.watch(favouritesProvider);
     final recentNums = ref.watch(recentlyViewedProvider);
 
+    // Amber for children's mode, teal for hymns mode
+    final modeAccent =
+        _isChildrenMode ? Colors.amber.shade700 : cs.primary;
+
     return Column(
       children: [
         // ── Results list (only visible when typing) ──
@@ -81,16 +96,18 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
           Expanded(
             child: hymnsAsync.when(
               loading: () =>
-                  Center(child: CircularProgressIndicator(color: cs.primary)),
+                  Center(child: CircularProgressIndicator(color: modeAccent)),
               error: (e, _) => Center(child: Text('Error: $e')),
               data: (hymns) {
                 final results = _filtered(hymns);
+                final display =
+                    _isChildrenMode ? 'C$_input' : '#$_input';
                 if (results.isEmpty) {
                   return Center(
                     child: Text(
                       lang == 'lg'
-                          ? 'Tewali luyimba lwa #$_input'
-                          : 'No hymn found for #$_input',
+                          ? 'Tewali luyimba lwa $display'
+                          : 'No hymn found for $display',
                       style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.45)),
                     ),
@@ -101,7 +118,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                   itemCount: results.length,
                   itemBuilder: (_, i) => HymnCard(
                     hymn: results[i],
-                    isFavourite: favourites.contains(results[i].number),
+                    isFavourite:
+                        favourites.contains(results[i].number.toString()),
                     onTap: () => _openHymn(results[i].number),
                     onFavouriteTap: () => ref
                         .read(favouritesProvider.notifier)
@@ -123,10 +141,23 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                   for (final h in hymns) h.number.toString(): h
                 };
 
-                // Use recently viewed if available, else fall back to defaults
-                final defaultNums = [1, 51, 130, 224, 239];
-                final suggestedNums =
-                    recentNums.isNotEmpty ? recentNums.take(5).toList() : defaultNums.map((n) => n.toString()).toList();
+                // Filter recents by current mode
+                final filteredRecents = _isChildrenMode
+                    ? recentNums
+                        .where((n) => n.startsWith('C'))
+                        .toList()
+                    : recentNums
+                        .where((n) => !n.startsWith('C'))
+                        .toList();
+
+                // Default suggestions per mode
+                final defaultNums = _isChildrenMode
+                    ? ['C1', 'C2', 'C3', 'C4', 'C5']
+                    : ['1', '51', '130', '224', '239'];
+
+                final suggestedNums = filteredRecents.isNotEmpty
+                    ? filteredRecents.take(5).toList()
+                    : defaultNums;
 
                 final suggested = suggestedNums
                     .map((n) => hymnMap[n.toString()])
@@ -135,9 +166,17 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
 
                 if (suggested.isEmpty) return const SizedBox.shrink();
 
-                final label = recentNums.isNotEmpty
-                    ? (lang == 'lg' ? 'BYALABIDDWA OLUVANNYUMA' : 'RECENTLY VIEWED')
-                    : (lang == 'lg' ? 'EMIYIMBA EYAZAALA' : 'POPULAR HYMNS');
+                final label = filteredRecents.isNotEmpty
+                    ? (lang == 'lg'
+                        ? 'BYALABIDDWA OLUVANNYUMA'
+                        : 'RECENTLY VIEWED')
+                    : _isChildrenMode
+                        ? (lang == 'lg'
+                            ? "ENNYIMBA Z'ABAANA"
+                            : "CHILDREN'S SONGS")
+                        : (lang == 'lg'
+                            ? 'ENYIMBA EMANYIFU'
+                            : 'POPULAR HYMNS');
 
                 return ListView(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -157,7 +196,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                     ...suggested.map(
                       (h) => HymnCard(
                         hymn: h,
-                        isFavourite: favourites.contains(h.number.toString()),
+                        isFavourite:
+                            favourites.contains(h.number.toString()),
                         onTap: () => _openHymn(h.number),
                         onFavouriteTap: () => ref
                             .read(favouritesProvider.notifier)
@@ -177,7 +217,35 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Number display above keys ──
+              // ── Mode toggle pill ──
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: cs.onSurface.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: Row(
+                  children: [
+                    _ModeTab(
+                      label: lang == 'lg'
+                          ? 'Enyimba 1–250'
+                          : 'Hymns 1–250',
+                      active: !_isChildrenMode,
+                      activeColor: cs.primary,
+                      onTap: () => _setMode(false),
+                    ),
+                    _ModeTab(
+                      label: lang == 'lg' ? "Ab'aana" : "Children's",
+                      active: _isChildrenMode,
+                      activeColor: Colors.amber.shade700,
+                      onTap: () => _setMode(true),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Number display ──
               SizedBox(
                 height: 64,
                 child: Center(
@@ -186,29 +254,34 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                     child: _input.isEmpty
                         ? Text(
                             lang == 'lg'
-                                ? 'Tandika ennamba...'
+                                ? 'Ennamba yo luyimba...'
                                 : 'Type a number...',
                             key: const ValueKey('hint'),
                             style: TextStyle(
                               fontSize: 14,
-                              color: cs.onSurface.withValues(alpha: 0.25),
+                              color:
+                                  cs.onSurface.withValues(alpha: 0.25),
                               letterSpacing: 0.5,
                             ),
                           )
                         : Text(
-                            _input,
+                            // Show "C19" in children's mode, "19" in hymns mode
+                            _isChildrenMode ? 'C$_input' : _input,
                             key: ValueKey(_input),
                             style: TextStyle(
                               fontSize: 48,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 10,
-                              color: cs.primary,
+                              color: modeAccent,
                             ),
                           ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 8),
+
+              // ── Number keys ──
               for (final row in [
                 ['1', '2', '3'],
                 ['4', '5', '6'],
@@ -232,11 +305,14 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                         .toList(),
                   ),
                 ),
+
+              // ── Bottom row: backspace, 0, SING ──
               Row(
                 children: [
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 5),
                       child: _NumKey(
                         icon: Icons.backspace_outlined,
                         cs: cs,
@@ -248,21 +324,23 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      child:
-                          _NumKey(label: '0', cs: cs, onTap: () => _press('0')),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 5),
+                      child: _NumKey(
+                          label: '0', cs: cs, onTap: () => _press('0')),
                     ),
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 5),
                       child: _YimbaKey(
                         input: _input,
                         lang: lang,
                         cs: cs,
-                        hymnsAsync: lang == 'en'
-                            ? ref.watch(englishHymnsProvider)
-                            : ref.watch(lugandaHymnsProvider),
+                        isChildrenMode: _isChildrenMode,
+                        modeAccent: modeAccent,
+                        hymnsAsync: hymnsAsync,
                         onOpen: _openHymn,
                         filtered: (hymns) => _filtered(hymns),
                       ),
@@ -274,6 +352,54 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Mode toggle tab ──
+class _ModeTab extends StatelessWidget {
+  final String label;
+  final bool active;
+  final Color activeColor;
+  final VoidCallback onTap;
+
+  const _ModeTab({
+    required this.label,
+    required this.active,
+    required this.activeColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          decoration: BoxDecoration(
+            color: active ? activeColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight:
+                  active ? FontWeight.w700 : FontWeight.w500,
+              color: active
+                  ? Colors.white
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.45),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -342,6 +468,8 @@ class _YimbaKey extends StatelessWidget {
   final String input;
   final String lang;
   final ColorScheme cs;
+  final bool isChildrenMode;
+  final Color modeAccent;
   final AsyncValue<List<Hymn>> hymnsAsync;
   final void Function(dynamic) onOpen;
   final List<Hymn> Function(List<Hymn>) filtered;
@@ -350,6 +478,8 @@ class _YimbaKey extends StatelessWidget {
     required this.input,
     required this.lang,
     required this.cs,
+    required this.isChildrenMode,
+    required this.modeAccent,
     required this.hymnsAsync,
     required this.onOpen,
     required this.filtered,
@@ -358,21 +488,26 @@ class _YimbaKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final results = hymnsAsync.whenData(filtered).value ?? [];
+    // In children's mode, exact match is e.g. "C1" when user typed "1"
+    final queryNum =
+        isChildrenMode ? 'C$input' : input;
     final exactMatch =
-        results.where((h) => h.number.toString() == input).firstOrNull;
+        results.where((h) => h.number.toString() == queryNum).firstOrNull;
     final canOpen =
         input.isNotEmpty && (exactMatch != null || results.length == 1);
-    final target = exactMatch ?? (results.length == 1 ? results.first : null);
+    final target =
+        exactMatch ?? (results.length == 1 ? results.first : null);
 
     return Material(
       color: canOpen
-          ? cs.primary
-          : cs.primary.withValues(alpha: 0.35),
+          ? modeAccent
+          : modeAccent.withValues(alpha: 0.35),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap:
-            canOpen && target != null ? () => onOpen(target.number) : null,
+        onTap: canOpen && target != null
+            ? () => onOpen(target.number)
+            : null,
         child: SizedBox(
           height: 58,
           child: Center(
@@ -382,7 +517,8 @@ class _YimbaKey extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.2,
-                color: Colors.white.withValues(alpha: canOpen ? 1.0 : 0.5),
+                color:
+                    Colors.white.withValues(alpha: canOpen ? 1.0 : 0.5),
               ),
             ),
           ),
