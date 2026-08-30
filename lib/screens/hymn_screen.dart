@@ -29,6 +29,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
 
   bool _showFontButtons = true;
   Timer? _fontButtonTimer;
+  bool _isProgrammaticScroll = false; // silences _onScroll during chip-tap scrolls
 
   void _showFontButtonsTemporarily() {
     setState(() => _showFontButtons = true);
@@ -75,6 +76,11 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   /// Detects which verse is currently in view as the user scrolls
   /// and updates the active chip accordingly.
   void _onScroll(int pageIndex) {
+    // Stay silent while a chip tap is driving a programmatic scroll
+    if (_isProgrammaticScroll) return;
+    // Guard against setState after dispose
+    if (!mounted) return;
+
     final keys = _verseKeysByPage[pageIndex];
     if (keys == null || keys.isEmpty) return;
 
@@ -109,10 +115,13 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   }
 
   Future<void> _scrollToVerse(int pageIndex, int verseIndex) async {
+    if (!mounted) return;
     setState(() => _activeVerseByPage[pageIndex] = verseIndex);
 
     final scrollCtrl = _scrollControllers[pageIndex];
     if (scrollCtrl == null) return;
+
+    _isProgrammaticScroll = true;
 
     if (verseIndex == 0) {
       await scrollCtrl.animateTo(
@@ -120,15 +129,23 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+      _isProgrammaticScroll = false;
       return;
     }
 
     await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) { _isProgrammaticScroll = false; return; }
 
     final targetKeys = _verseKeysByPage[pageIndex];
-    if (targetKeys == null || verseIndex >= targetKeys.length) return;
+    if (targetKeys == null || verseIndex >= targetKeys.length) {
+      _isProgrammaticScroll = false;
+      return;
+    }
     final ctx = targetKeys[verseIndex].currentContext;
-    if (ctx == null || !ctx.mounted) return;
+    if (ctx == null || !ctx.mounted) {
+      _isProgrammaticScroll = false;
+      return;
+    }
 
     await Scrollable.ensureVisible(
       ctx,
@@ -136,6 +153,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       curve: Curves.easeInOut,
       alignment: 0.05,
     );
+
+    _isProgrammaticScroll = false;
   }
 
   void _onPageChanged(int index, List<Hymn> hymns) {
@@ -152,6 +171,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   /// show more than once every few weeks and is suppressed for users
   /// who have already reviewed the app.
   Future<void> _maybeRequestReview() async {
+    if (!mounted) return;
     final recentCount = ref.read(recentlyViewedProvider).length;
     if (recentCount == 5) {
       final inAppReview = InAppReview.instance;
