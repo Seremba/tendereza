@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/providers.dart';
 import 'screens/home_screen.dart';
+import 'screens/hymn_screen.dart';
+
+/// Global navigator key — used to navigate from notification taps.
+final navigatorKey = GlobalKey<NavigatorState>();
 
 /// Tendereza theme enum — 5 themes
 enum TenderezaTheme { light, sepia, dark, black, gold }
@@ -77,15 +81,39 @@ class AlpsColors {
   static const velvet        = teal;
 }
 
-class SdaHymnalApp extends ConsumerWidget {
-  const SdaHymnalApp({super.key});
+class SdaHymnalApp extends ConsumerStatefulWidget {
+  /// When the app is launched by tapping a notification, this is the hymn
+  /// number to navigate to immediately after the home screen loads.
+  final int? initialHymnNumber;
+
+  const SdaHymnalApp({super.key, this.initialHymnNumber});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final appTheme = ref.watch(appThemeProvider);
+  ConsumerState<SdaHymnalApp> createState() => _SdaHymnalAppState();
+}
+
+class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
+  @override
+  void initState() {
+    super.initState();
+    // If launched from a notification, navigate to the hymn after first frame
+    if (widget.initialHymnNumber != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) =>
+                HymnScreen(hymnNumber: widget.initialHymnNumber!),
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appTheme  = ref.watch(appThemeProvider);
     final fontFamily = ref.watch(fontFamilyProvider);
 
-    // Map TenderezaTheme to Flutter ThemeMode for system behavior
     final themeMode = switch (appTheme) {
       TenderezaTheme.light => ThemeMode.light,
       TenderezaTheme.sepia => ThemeMode.light,
@@ -95,8 +123,9 @@ class SdaHymnalApp extends ConsumerWidget {
     };
 
     return MaterialApp(
-      title: 'SDA Hymnal',
+      title: 'Tendereza',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       themeMode: themeMode,
       theme: _buildTheme(appTheme, fontFamily, false),
       darkTheme: _buildTheme(appTheme, fontFamily, true),
@@ -106,7 +135,6 @@ class SdaHymnalApp extends ConsumerWidget {
 
   ThemeData _buildTheme(
       TenderezaTheme appTheme, String fontFamily, bool isDarkMode) {
-    // Pick colors based on theme
     final Color bg;
     final Color surface;
     final Color surface2;
@@ -176,7 +204,6 @@ class SdaHymnalApp extends ConsumerWidget {
         brightness = Brightness.dark;
     }
 
-    // Resolve font
     final baseTextTheme = _fontTextTheme(fontFamily);
 
     final scheme = ColorScheme(
@@ -200,10 +227,7 @@ class SdaHymnalApp extends ConsumerWidget {
       colorScheme: scheme,
       brightness: brightness,
       scaffoldBackgroundColor: bg,
-      textTheme: baseTextTheme.apply(
-        bodyColor: text,
-        displayColor: text,
-      ),
+      textTheme: baseTextTheme.apply(bodyColor: text, displayColor: text),
 
       appBarTheme: AppBarTheme(
         elevation: 0,

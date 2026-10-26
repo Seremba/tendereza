@@ -1,12 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:share_plus/share_plus.dart';
+import '../providers/providers.dart';
+import '../services/notification_service.dart';
 
-class MoreScreen extends ConsumerWidget {
+class MoreScreen extends ConsumerStatefulWidget {
   const MoreScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends ConsumerState<MoreScreen> {
+  bool _notificationsEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationsEnabled =
+        ref.read(sharedPreferencesProvider).getBool('notifications_enabled') ??
+            false;
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    if (value) {
+      final granted = await NotificationService.requestPermission();
+      if (!granted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Please allow notifications in your phone settings.'),
+            ),
+          );
+        }
+        return;
+      }
+      await NotificationService.scheduleAll();
+    } else {
+      await NotificationService.cancelAll();
+    }
+
+    await ref
+        .read(sharedPreferencesProvider)
+        .setBool('notifications_enabled', value);
+
+    if (mounted) setState(() => _notificationsEnabled = value);
+  }
+
+  Future<void> _rateApp() async {
+    final review = InAppReview.instance;
+    if (await review.isAvailable()) {
+      await review.openStoreListing(
+          appStoreId: 'com.sericklabs.tendereza');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final bg = Theme.of(context).scaffoldBackgroundColor;
     final titleColor = cs.onSurface;
@@ -22,7 +74,8 @@ class MoreScreen extends ConsumerWidget {
           children: [
             // ── Top bar ──
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
                 children: [
                   Text(
@@ -67,9 +120,10 @@ class MoreScreen extends ConsumerWidget {
 
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 children: [
-                  // ── App info header ──
+                  // ── App info ──
                   Center(
                     child: Column(
                       children: [
@@ -93,8 +147,9 @@ class MoreScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text('v1.0.0',
-                            style: TextStyle(fontSize: 13, color: dimColor)),
+                        Text('v1.0.1',
+                            style:
+                                TextStyle(fontSize: 13, color: dimColor)),
                         const SizedBox(height: 6),
                         Text(
                           'Sing, listen and grow in faith.',
@@ -113,6 +168,54 @@ class MoreScreen extends ConsumerWidget {
 
                   // ── Settings ──
                   _SectionLabel(label: 'Settings', dimColor: dimColor),
+                  _SettingsCard(
+                    surfaceColor: surfaceColor,
+                    borderColor: borderColor,
+                    children: [
+                      // Notifications toggle
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.notifications_outlined,
+                                size: 20, color: dimColor),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Daily Hymn Reminders',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: titleColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Morning, midday and evening',
+                                    style: TextStyle(
+                                        fontSize: 12, color: dimColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _notificationsEnabled,
+                              onChanged: _toggleNotifications,
+                              activeThumbColor: accent,
+                              activeTrackColor: accent.withValues(alpha: 0.4),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
                   // ── Support ──
                   _SectionLabel(label: 'Support', dimColor: dimColor),
                   _SettingsCard(
@@ -129,7 +232,7 @@ class MoreScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // ── Community ──
                   _SectionLabel(label: 'Community', dimColor: dimColor),
@@ -144,20 +247,21 @@ class MoreScreen extends ConsumerWidget {
                         dimColor: dimColor,
                         borderColor: borderColor,
                         onTap: () => Share.share(
-                          'Try Tendereza — the SDA Hymnal app in Luganda & English! https://play.google.com/store/apps/details?id=com.sericklabs.tendereza',
+                          'Try Tendereza — the SDA Hymnal app in Luganda & English!\nhttps://play.google.com/store/apps/details?id=com.sericklabs.tendereza',
                           subject: 'Tendereza — SDA Hymnal',
                         ),
                       ),
-                      Divider(height: 1, indent: 50, color: borderColor),
+                      Divider(
+                          height: 1,
+                          indent: 50,
+                          color: borderColor),
                       _SettingsRow(
                         icon: Icons.star_outline,
                         title: 'Rate the App',
                         titleColor: titleColor,
                         dimColor: dimColor,
                         borderColor: borderColor,
-                        onTap: () {
-                          // TODO: open Play Store rating when live
-                        },
+                        onTap: _rateApp,
                       ),
                     ],
                   ),
@@ -176,7 +280,8 @@ class MoreScreen extends ConsumerWidget {
                               height: 1.6,
                             ),
                             children: const [
-                              TextSpan(text: 'Tendereza was made with '),
+                              TextSpan(
+                                  text: 'Tendereza was made with '),
                               TextSpan(text: '❤️'),
                               TextSpan(text: ' by\nPatrick Seremba.'),
                             ],
@@ -204,10 +309,6 @@ class MoreScreen extends ConsumerWidget {
       ),
     );
   }
-
-
-
-
 
   void _showDonateSheet(BuildContext context, ColorScheme cs) {
     showModalBottomSheet(
@@ -282,7 +383,7 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-// ── Settings row — all colors explicit, no cs.outline ──
+// ── Settings row ──
 class _SettingsRow extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -306,25 +407,20 @@ class _SettingsRow extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Icon(icon, size: 20, color: dimColor),
             const SizedBox(width: 14),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: titleColor,
-                    ),
-                  ),
-
-                ],
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: titleColor,
+                ),
               ),
             ),
             Icon(Icons.chevron_right, size: 20, color: dimColor),
@@ -352,7 +448,8 @@ class _DonateSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: cs.outline,
               borderRadius: BorderRadius.circular(2),
@@ -374,12 +471,10 @@ class _DonateSheet extends StatelessWidget {
           Text(
             'Help us keep this app free and growing.\nYour support means a lot!',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: dimColor, height: 1.6),
+            style: TextStyle(
+                fontSize: 14, color: dimColor, height: 1.6),
           ),
           const SizedBox(height: 24),
-          // TODO: add MTN MoMo number
-          // TODO: add Airtel Money number
-          // TODO: add Flutterwave donate link
           Text(
             'Donation options coming soon.',
             style: TextStyle(fontSize: 13, color: dimColor),
@@ -409,7 +504,8 @@ class _PrivacyPolicySheet extends StatelessWidget {
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: cs.outline,
                 borderRadius: BorderRadius.circular(2),
@@ -430,7 +526,8 @@ class _PrivacyPolicySheet extends StatelessWidget {
             'Tendereza does not collect, store, or share any personal data. '
             'All hymn data is stored locally on your device. '
             'No account or internet connection is required to use the app.',
-            style: TextStyle(fontSize: 14, color: dimColor, height: 1.7),
+            style:
+                TextStyle(fontSize: 14, color: dimColor, height: 1.7),
           ),
           const SizedBox(height: 12),
           Text(

@@ -45,6 +45,17 @@ class Hymn {
   final dynamic number;
   final String? key;
   final String title;
+
+  /// English title — shown below the Luganda title on the LG side.
+  /// Populated in hymns_lg.json only; null on the English side.
+  final String? englishTitle;
+
+  /// Composer / arranger name e.g. "John B. Dykes"
+  final String? composer;
+
+  /// Book source reference e.g. "CH 73"
+  final String? bookSource;
+
   final String firstLine;
   final List<Verse> verses;
   final HymnHistory? history;
@@ -53,20 +64,30 @@ class Hymn {
     required this.number,
     this.key,
     required this.title,
+    this.englishTitle,
+    this.composer,
+    this.bookSource,
     required this.firstLine,
     required this.verses,
     this.history,
   });
 
-  // Returns true once children's songs JSON is loaded (number will be e.g. "C1")
+  /// Returns true for children's songs whose number starts with "C"
   bool get isChildrenSong =>
       number is String && number.toString().startsWith('C');
 
+  /// True when at least one piece of metadata is available to display
+  bool get hasMetadata =>
+      key != null || composer != null || bookSource != null;
+
   factory Hymn.fromJson(Map<String, dynamic> json) => Hymn(
-        number: json['number'],
-        key: json['key'] as String?,
-        title: json['title'] as String,
-        firstLine: json['first_line'] as String,
+        number:       json['number'],
+        key:          json['key']           as String?,
+        title:        json['title']         as String,
+        englishTitle: json['english_title'] as String?,
+        composer:     json['composer']      as String?,
+        bookSource:   json['book_source']   as String?,
+        firstLine:    json['first_line']    as String,
         verses: (json['verses'] as List)
             .map((v) => Verse.fromJson(v as Map<String, dynamic>))
             .toList(),
@@ -77,9 +98,12 @@ class Hymn {
 
   Map<String, dynamic> toJson() => {
         'number': number,
-        if (key != null) 'key': key,
-        'title': title,
-        'first_line': firstLine,
+        if (key != null)          'key':           key,
+        'title':                  title,
+        if (englishTitle != null) 'english_title': englishTitle,
+        if (composer != null)     'composer':      composer,
+        if (bookSource != null)   'book_source':   bookSource,
+        'first_line':             firstLine,
         'verses': verses.map((v) => v.toJson()).toList(),
         if (history != null) 'history': history!.toJson(),
       };

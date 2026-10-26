@@ -1,33 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'providers/providers.dart';
+import 'screens/hymn_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Disable runtime font fetching — all fonts are bundled locally
   GoogleFonts.config.allowRuntimeFetching = false;
 
   final prefs = await SharedPreferences.getInstance();
 
-  // One-time migration: clear stale 'en' default so 'lg' takes effect
-  // on devices that launched the app before this was set.
-  // Safe to remove after next Play Store release.
+  // ── One-time migration ──
   const migrationKey = 'migration_v1_lg_default';
   if (!prefs.containsKey(migrationKey)) {
     await prefs.remove('language');
     await prefs.setBool(migrationKey, true);
   }
 
+  // ── Notifications ──
+  await NotificationService.init(
+    onTap: (payload) {
+      // Called when user taps a notification while app is running
+      _navigateToHymn(payload);
+    },
+  );
+
+  // Reschedule daily notifications on every launch (keeps hymn numbers fresh)
+  final notificationsEnabled =
+      prefs.getBool('notifications_enabled') ?? false;
+  if (notificationsEnabled) {
+    await NotificationService.scheduleAll();
+  }
+
+  // Check if app was launched by tapping a notification (terminated state)
+  final launchDetails = await FlutterLocalNotificationsPlugin()
+      .getNotificationAppLaunchDetails();
+  final launchPayload =
+      launchDetails?.didNotificationLaunchApp == true
+          ? launchDetails?.notificationResponse?.payload
+          : null;
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const SdaHymnalApp(),
+      child: SdaHymnalApp(initialHymnNumber: launchPayload != null
+          ? int.tryParse(launchPayload)
+          : null),
     ),
+  );
+}
+
+/// Navigate to a hymn screen from a notification tap.
+/// Works when the app is already running (foreground / background).
+void _navigateToHymn(String? payload) {
+  if (payload == null) return;
+  final number = int.tryParse(payload);
+  if (number == null) return;
+  final context = navigatorKey.currentContext;
+  if (context == null) return;
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => HymnScreen(hymnNumber: number)),
   );
 }

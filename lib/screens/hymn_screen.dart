@@ -7,6 +7,7 @@ import '../app.dart';
 import '../models/hymn.dart';
 import '../providers/providers.dart';
 import '../services/audio_service.dart';
+import '../utils/hymn_utils.dart';
 import '../widgets/appearance_sheet.dart';
 import '../widgets/language_toggle.dart';
 import '../widgets/verse_display.dart';
@@ -47,21 +48,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       sc.dispose();
     }
     super.dispose();
-  }
-
-  int _compareNumbers(dynamic a, dynamic b) {
-    if (a is int && b is int) return a.compareTo(b);
-    if (a is int) return -1;
-    if (b is int) return 1;
-    final re = RegExp(r'^([A-Za-z]*)(\d+)$');
-    final aM = re.firstMatch(a.toString());
-    final bM = re.firstMatch(b.toString());
-    if (aM != null && bM != null) {
-      final pc = aM.group(1)!.compareTo(bM.group(1)!);
-      if (pc != 0) return pc;
-      return int.parse(aM.group(2)!).compareTo(int.parse(bM.group(2)!));
-    }
-    return a.toString().compareTo(b.toString());
   }
 
   ScrollController _scrollControllerFor(int index) {
@@ -260,7 +246,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
       ),
       data: (hymns) {
         final sorted = [...hymns]
-          ..sort((a, b) => _compareNumbers(a.number, b.number));
+          ..sort((a, b) => compareHymnNumbers(a.number, b.number));
 
         final startIndex = sorted.indexWhere(
             (h) => h.number.toString() == widget.hymnNumber.toString());
@@ -345,9 +331,10 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
 
                       // ── Hymn header ──
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
                         child: Column(
                           children: [
+                            // Number
                             Text(
                               '${currentHymn.number}',
                               style: TextStyle(
@@ -358,6 +345,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
+                            // Luganda / primary title
                             Text(
                               currentHymn.title,
                               textAlign: TextAlign.center,
@@ -368,23 +356,27 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                                 height: 1.3,
                               ),
                             ),
-                            if (currentHymn.key != null) ...[
-                              const SizedBox(height: 6),
-                              RichText(
-                                text: TextSpan(
-                                  style: TextStyle(
-                                      fontSize: 13, color: dimColor),
-                                  children: [
-                                    const TextSpan(text: 'Doh is '),
-                                    TextSpan(
-                                      text: currentHymn.key,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        color: accent,
-                                      ),
-                                    ),
-                                  ],
+                            // English title — only shown on Luganda side
+                            if (lang == 'lg' &&
+                                currentHymn.englishTitle != null) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                currentHymn.englishTitle!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: dimColor,
+                                  height: 1.4,
                                 ),
+                              ),
+                            ],
+                            // Meta line: Doh · Source · Composer
+                            if (currentHymn.hasMetadata) ...[
+                              const SizedBox(height: 6),
+                              _MetaLine(
+                                hymn: currentHymn,
+                                accent: accent,
+                                dimColor: dimColor,
                               ),
                             ],
                           ],
@@ -763,6 +755,67 @@ class _VerseNavBar extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ── Meta line: Doh is X · CH 73 · Composer ──
+class _MetaLine extends StatelessWidget {
+  final Hymn hymn;
+  final Color accent;
+  final Color dimColor;
+
+  const _MetaLine({
+    required this.hymn,
+    required this.accent,
+    required this.dimColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = <InlineSpan>[];
+    final sep = TextSpan(
+      text: '  ·  ',
+      style: TextStyle(color: dimColor.withValues(alpha: 0.3)),
+    );
+
+    if (hymn.key != null) {
+      parts.add(TextSpan(
+        children: [
+          TextSpan(
+            text: 'Doh is ',
+            style: TextStyle(color: dimColor.withValues(alpha: 0.55)),
+          ),
+          TextSpan(
+            text: hymn.key,
+            style: TextStyle(
+              color: accent,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ));
+    }
+
+    if (hymn.bookSource != null) {
+      if (parts.isNotEmpty) parts.add(sep);
+      parts.add(TextSpan(text: hymn.bookSource!));
+    }
+
+    if (hymn.composer != null) {
+      if (parts.isNotEmpty) parts.add(sep);
+      parts.add(TextSpan(text: hymn.composer!));
+    }
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: 11,
+          color: dimColor.withValues(alpha: 0.55),
+        ),
+        children: parts,
       ),
     );
   }

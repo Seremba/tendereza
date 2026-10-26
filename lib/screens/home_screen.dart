@@ -108,10 +108,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             label: 'Favourites',
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Browse',
-          ),
+  icon: Icon(Icons.search_outlined),
+  selectedIcon: Icon(Icons.search),
+  label: 'Search',
+),
           NavigationDestination(
             icon: Icon(Icons.more_horiz_outlined),
             selectedIcon: Icon(Icons.more_horiz),
