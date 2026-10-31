@@ -13,7 +13,7 @@ class AppearanceSheet extends ConsumerStatefulWidget {
 }
 
 class _AppearanceSheetState extends ConsumerState<AppearanceSheet> {
-  static const _fonts = ['Lato', 'Poppins', 'Nunito', 'Gentium Plus'];
+  static const _fonts = ['Poppins', 'Gentium Plus', 'Lora', 'EB Garamond'];
 
   static const _themes = [
     (TenderezaTheme.light, 'Light', Color(0xFFFFFFFF), Color(0xFF1A1A1A), Color(0xFF1D9E75)),

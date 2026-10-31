@@ -27,7 +27,7 @@ class AppThemeNotifier extends Notifier<TenderezaTheme> {
       'dark'   => TenderezaTheme.dark,
       'black'  => TenderezaTheme.black,
       'gold'   => TenderezaTheme.gold,
-      _        => TenderezaTheme.dark,
+      _        => TenderezaTheme.light, // default for fresh installs
     };
   }
 
@@ -61,10 +61,21 @@ final themeProvider = appThemeProvider;
 class FontFamilyNotifier extends Notifier<String> {
   static const _key = 'font_family';
 
+  /// Typefaces bundled with the app. Anything else (e.g. the retired
+  /// Lato / Nunito) falls back to the default.
+  static const validFamilies = [
+    'Poppins',
+    'Gentium Plus',
+    'Lora',
+    'EB Garamond',
+  ];
+  static const defaultFamily = 'Gentium Plus';
+
   @override
   String build() {
     final prefs = ref.read(sharedPreferencesProvider);
-    return prefs.getString(_key) ?? 'Lato';
+    final stored = prefs.getString(_key);
+    return validFamilies.contains(stored) ? stored! : defaultFamily;
   }
 
   void setFamily(String family) {

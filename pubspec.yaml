@@ -45,15 +45,15 @@ flutter:
     - assets/audio/
 
   fonts:
-    - family: Lato
-      fonts:
-        - asset: assets/fonts/Lato-Regular.ttf
     - family: Poppins
       fonts:
         - asset: assets/fonts/Poppins-Regular.ttf
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito-Regular.ttf
     - family: Gentium Plus
       fonts:
         - asset: assets/fonts/GentiumPlus-Regular.ttf
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-Regular.ttf
+    - family: EB Garamond
+      fonts:
+        - asset: assets/fonts/EBGaramond-Regular.ttf

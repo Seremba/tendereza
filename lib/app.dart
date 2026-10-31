@@ -326,14 +326,14 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
     switch (fontFamily) {
       case 'Poppins':
         return GoogleFonts.poppinsTextTheme();
-      case 'Lato':
-        return GoogleFonts.latoTextTheme();
-      case 'Nunito':
-        return GoogleFonts.nunitoTextTheme();
       case 'Gentium Plus':
         return GoogleFonts.gentiumPlusTextTheme();
+      case 'Lora':
+        return GoogleFonts.loraTextTheme();
+      case 'EB Garamond':
+        return GoogleFonts.ebGaramondTextTheme();
       default:
-        return GoogleFonts.latoTextTheme();
+        return GoogleFonts.gentiumPlusTextTheme();
     }
   }
 }
