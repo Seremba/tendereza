@@ -64,7 +64,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final themeIcon = switch (appTheme) {
       TenderezaTheme.light => Icons.light_mode_outlined,
       TenderezaTheme.sepia => Icons.auto_awesome_outlined,
-      TenderezaTheme.dark => Icons.dark_mode_outlined,
       TenderezaTheme.black => Icons.bedtime_outlined,
       TenderezaTheme.gold => Icons.stars_outlined,
     };
@@ -108,10 +107,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             label: 'Favourites',
           ),
           NavigationDestination(
-  icon: Icon(Icons.search_outlined),
-  selectedIcon: Icon(Icons.search),
-  label: 'Search',
-),
+            icon: Icon(Icons.search_outlined),
+            selectedIcon: Icon(Icons.search),
+            label: 'Search',
+          ),
           NavigationDestination(
             icon: Icon(Icons.more_horiz_outlined),
             selectedIcon: Icon(Icons.more_horiz),

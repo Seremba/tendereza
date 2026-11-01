@@ -24,7 +24,6 @@ class AppThemeNotifier extends Notifier<TenderezaTheme> {
     return switch (stored) {
       'light'  => TenderezaTheme.light,
       'sepia'  => TenderezaTheme.sepia,
-      'dark'   => TenderezaTheme.dark,
       'black'  => TenderezaTheme.black,
       'gold'   => TenderezaTheme.gold,
       _        => TenderezaTheme.light, // default for fresh installs
@@ -39,9 +38,8 @@ class AppThemeNotifier extends Notifier<TenderezaTheme> {
   // Legacy toggle for AppBar dark mode button
   void toggle() {
     final next = switch (state) {
-      TenderezaTheme.light  => TenderezaTheme.dark,
-      TenderezaTheme.sepia  => TenderezaTheme.dark,
-      TenderezaTheme.dark   => TenderezaTheme.light,
+      TenderezaTheme.light  => TenderezaTheme.black,
+      TenderezaTheme.sepia  => TenderezaTheme.black,
       TenderezaTheme.black  => TenderezaTheme.light,
       TenderezaTheme.gold   => TenderezaTheme.light,
     };

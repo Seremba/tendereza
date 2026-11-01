@@ -30,6 +30,14 @@ void main() async {
     },
   );
 
+  // One-time reset: everyone starts on the Light theme after this update
+  // (Dark was retired). Any theme chosen afterwards is kept as normal.
+  const themeResetKey = 'migration_v2_light_theme_reset';
+  if (!prefs.containsKey(themeResetKey)) {
+    await prefs.remove('app_theme');
+    await prefs.setBool(themeResetKey, true);
+  }
+
   // Reschedule daily notifications on every launch (keeps hymn numbers fresh)
   final notificationsEnabled =
       prefs.getBool('notifications_enabled') ?? false;

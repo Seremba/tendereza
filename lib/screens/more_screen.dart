@@ -96,16 +96,16 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                         color: accent,
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.volunteer_activism,
-                              color: Colors.white, size: 18),
-                          SizedBox(width: 6),
+                              color: cs.onPrimary, size: 18),
+                          const SizedBox(width: 6),
                           Text(
                             'Donate',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: cs.onPrimary,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
@@ -134,8 +134,8 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                             color: accent,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Icon(Icons.music_note,
-                              color: Colors.white, size: 44),
+                          child: Icon(Icons.music_note,
+                              color: cs.onPrimary, size: 44),
                         ),
                         const SizedBox(height: 12),
                         Text(

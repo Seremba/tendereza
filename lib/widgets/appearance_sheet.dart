@@ -18,9 +18,8 @@ class _AppearanceSheetState extends ConsumerState<AppearanceSheet> {
   static const _themes = [
     (TenderezaTheme.light, 'Light', Color(0xFFFFFFFF), Color(0xFF1A1A1A), Color(0xFF1D9E75)),
     (TenderezaTheme.sepia, 'Sepia', Color(0xFFF5ECD7), Color(0xFF2C1810), Color(0xFF1D9E75)),
-    (TenderezaTheme.dark,  'Dark',  Color(0xFF042C53), Color(0xFFB5D4F4), Color(0xFF1D9E75)),
     (TenderezaTheme.black, 'Black', Color(0xFF000000), Color(0xFFF0F0F0), Color(0xFF1D9E75)),
-    (TenderezaTheme.gold,  'Gold',  Color(0xFF1C1208), Color(0xFFF5ECD7), Color(0xFFC8922A)),
+    (TenderezaTheme.gold,  'Gold',  Color(0xFF140D05), Color(0xFFF3E6CC), Color(0xFFD4A24A)),
   ];
 
   @override

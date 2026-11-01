@@ -10,7 +10,7 @@ import 'screens/hymn_screen.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 /// Tendereza theme enum — 5 themes
-enum TenderezaTheme { light, sepia, dark, black, gold }
+enum TenderezaTheme { light, sepia, black, gold }
 
 /// Official ALPS color palette + theme-specific colors
 class AlpsColors {
@@ -56,15 +56,16 @@ class AlpsColors {
   static const blackBorder   = Color(0xFF2A2A2A);
 
   // ── Gold ──
-  static const goldBg        = Color(0xFF1C1208);
-  static const goldSurface   = Color(0xFF2A1E0F);
-  static const goldSurface2  = Color(0xFF3A2A14);
-  static const goldAccent    = Color(0xFFC8922A);
-  static const goldAccentLight = Color(0xFFE8B84B);
+  static const goldBg        = Color(0xFF140D05); // deepest background
+  static const goldSurface   = Color(0xFF33240F);
+  static const goldSurface2  = Color(0xFF3D2B14);
+  static const goldAccent    = Color(0xFFD4A24A);
+  static const goldAccentLight = Color(0xFFE2B764);
   static const goldAccentDark  = Color(0xFF8B6318);
-  static const goldText      = Color(0xFFF5ECD7);
+  static const goldText      = Color(0xFFF3E6CC);
   static const goldTextDim   = Color(0xFFD4B896);
-  static const goldBorder    = Color(0xFF8B6B48);
+  static const goldBorder    = Color(0xFF9A7530);
+  static const goldOnAccent  = Color(0xFF140D05); // dark text/icons on gold fills
   static const goldTeal      = Color(0xFF3A2A14);
 
   // ── Neutrals ──
@@ -117,7 +118,6 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
     final themeMode = switch (appTheme) {
       TenderezaTheme.light => ThemeMode.light,
       TenderezaTheme.sepia => ThemeMode.light,
-      TenderezaTheme.dark  => ThemeMode.dark,
       TenderezaTheme.black => ThemeMode.dark,
       TenderezaTheme.gold  => ThemeMode.dark,
     };
@@ -169,17 +169,6 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
         accentLight= AlpsColors.tealLight;
         accentDark = AlpsColors.tealDark;
         brightness = Brightness.light;
-      case TenderezaTheme.dark:
-        bg         = AlpsColors.navy;
-        surface    = AlpsColors.navySurface;
-        surface2   = AlpsColors.navyLight;
-        text       = AlpsColors.textPrimary;
-        textDim    = AlpsColors.textDim;
-        border     = const Color(0xFF4A6080);
-        accent     = AlpsColors.teal;
-        accentLight= AlpsColors.tealLight;
-        accentDark = AlpsColors.tealDark;
-        brightness = Brightness.dark;
       case TenderezaTheme.black:
         bg         = AlpsColors.blackBg;
         surface    = AlpsColors.blackSurface;
@@ -206,10 +195,15 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
 
     final baseTextTheme = _fontTextTheme(fontFamily);
 
+    // Text/icons drawn on top of accent fills: dark on gold, white elsewhere
+    final onAccent = appTheme == TenderezaTheme.gold
+        ? AlpsColors.goldOnAccent
+        : Colors.white;
+
     final scheme = ColorScheme(
       brightness: brightness,
       primary: accent,
-      onPrimary: brightness == Brightness.dark ? bg : Colors.white,
+      onPrimary: onAccent,
       secondary: accentDark,
       onSecondary: Colors.white,
       tertiary: accentLight,
@@ -293,7 +287,7 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: accent,
-        foregroundColor: brightness == Brightness.dark ? bg : Colors.white,
+        foregroundColor: onAccent,
         elevation: 4,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(18)),
@@ -303,7 +297,7 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: accent,
-          foregroundColor: brightness == Brightness.dark ? bg : Colors.white,
+          foregroundColor: onAccent,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(14)),
           ),

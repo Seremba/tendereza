@@ -219,7 +219,6 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
     final themeIcon = switch (appTheme) {
       TenderezaTheme.light => Icons.light_mode_outlined,
       TenderezaTheme.sepia => Icons.auto_awesome_outlined,
-      TenderezaTheme.dark  => Icons.dark_mode_outlined,
       TenderezaTheme.black => Icons.bedtime_outlined,
       TenderezaTheme.gold  => Icons.stars_outlined,
     };
@@ -748,7 +747,9 @@ class _VerseNavBar extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isActive ? Colors.white : badgeFg,
+                    color: isActive
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : badgeFg,
                   ),
                 ),
               ),
@@ -867,7 +868,7 @@ class _FontSizeButton extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w800,
               color: enabled
-                  ? Colors.white
+                  ? cs.onPrimary
                   : cs.onSurface.withValues(alpha: 0.3),
             ),
           ),

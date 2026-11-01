@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/hymn.dart';
 import '../providers/providers.dart';
+import '../utils/hymn_utils.dart';
 import '../widgets/hymn_card.dart';
 import 'hymn_screen.dart';
 
@@ -49,20 +50,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
     });
   }
 
-  int _compareNumbers(dynamic a, dynamic b) {
-    if (a is int && b is int) return a.compareTo(b);
-    if (a is int) return -1;
-    if (b is int) return 1;
-    final re = RegExp(r'^([A-Za-z]*)(\d+)$');
-    final aM = re.firstMatch(a.toString());
-    final bM = re.firstMatch(b.toString());
-    if (aM != null && bM != null) {
-      final pc = aM.group(1)!.compareTo(bM.group(1)!);
-      if (pc != 0) return pc;
-      return int.parse(aM.group(2)!).compareTo(int.parse(bM.group(2)!));
-    }
-    return a.toString().compareTo(b.toString());
-  }
+  int _compareNumbers(dynamic a, dynamic b) =>
+      compareHymnNumbers(a, b);
 
   List<Hymn> _filtered(List<Hymn> hymns) {
     if (_input.isEmpty) return [];
@@ -175,7 +164,7 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                             ? "ENNYIMBA Z'ABAANA"
                             : "CHILDREN'S SONGS")
                         : (lang == 'lg'
-                            ? 'ENYIMBA EMANYIFU'
+                            ? 'EMIYIMBA EYAZAALA'
                             : 'POPULAR HYMNS');
 
                 return ListView(
@@ -229,16 +218,18 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                   children: [
                     _ModeTab(
                       label: lang == 'lg'
-                          ? 'Enyimba 1–250'
+                          ? 'Emiyimba 1–250'
                           : 'Hymns 1–250',
                       active: !_isChildrenMode,
                       activeColor: cs.primary,
+                      activeTextColor: cs.onPrimary,
                       onTap: () => _setMode(false),
                     ),
                     _ModeTab(
                       label: lang == 'lg' ? "Ab'aana" : "Children's",
                       active: _isChildrenMode,
                       activeColor: Colors.amber.shade700,
+                      activeTextColor: Colors.white,
                       onTap: () => _setMode(true),
                     ),
                   ],
@@ -254,7 +245,7 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                     child: _input.isEmpty
                         ? Text(
                             lang == 'lg'
-                                ? 'Ennamba yo luyimba...'
+                                ? 'Tandika ennamba...'
                                 : 'Type a number...',
                             key: const ValueKey('hint'),
                             style: TextStyle(
@@ -361,12 +352,14 @@ class _ModeTab extends StatelessWidget {
   final String label;
   final bool active;
   final Color activeColor;
+  final Color activeTextColor;
   final VoidCallback onTap;
 
   const _ModeTab({
     required this.label,
     required this.active,
     required this.activeColor,
+    required this.activeTextColor,
     required this.onTap,
   });
 
@@ -391,7 +384,7 @@ class _ModeTab extends StatelessWidget {
               fontWeight:
                   active ? FontWeight.w700 : FontWeight.w500,
               color: active
-                  ? Colors.white
+                  ? activeTextColor
                   : Theme.of(context)
                       .colorScheme
                       .onSurface
@@ -498,6 +491,9 @@ class _YimbaKey extends StatelessWidget {
     final target =
         exactMatch ?? (results.length == 1 ? results.first : null);
 
+    // Children's mode keeps white-on-amber; Hymns mode follows the theme
+    final onKey = isChildrenMode ? Colors.white : cs.onPrimary;
+
     return Material(
       color: canOpen
           ? modeAccent
@@ -518,7 +514,7 @@ class _YimbaKey extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.2,
                 color:
-                    Colors.white.withValues(alpha: canOpen ? 1.0 : 0.5),
+                    onKey.withValues(alpha: canOpen ? 1.0 : 0.5),
               ),
             ),
           ),
