@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import '../providers/providers.dart';
 import '../services/notification_service.dart';
@@ -15,12 +16,25 @@ class MoreScreen extends ConsumerStatefulWidget {
 class _MoreScreenState extends ConsumerState<MoreScreen> {
   bool _notificationsEnabled = false;
 
+  /// Read from pubspec.yaml at runtime, so it always matches the build.
+  String _version = '';
+
   @override
   void initState() {
     super.initState();
     _notificationsEnabled =
         ref.read(sharedPreferencesProvider).getBool('notifications_enabled') ??
             false;
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) setState(() => _version = info.version);
+    } catch (_) {
+      // Leave blank rather than show a wrong number
+    }
   }
 
   Future<void> _toggleNotifications(bool value) async {
@@ -37,7 +51,17 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
         }
         return;
       }
-      await NotificationService.scheduleAll();
+      try {
+        await NotificationService.scheduleAll();
+      } catch (e) {
+        // Don't leave the switch looking "on" when nothing was scheduled
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not set up reminders: $e')),
+          );
+        }
+        return;
+      }
     } else {
       await NotificationService.cancelAll();
     }
@@ -147,7 +171,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text('v1.0.1',
+                        Text(_version.isEmpty ? '' : 'v$_version',
                             style:
                                 TextStyle(fontSize: 13, color: dimColor)),
                         const SizedBox(height: 6),

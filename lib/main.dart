@@ -42,7 +42,11 @@ void main() async {
   final notificationsEnabled =
       prefs.getBool('notifications_enabled') ?? false;
   if (notificationsEnabled) {
-    await NotificationService.scheduleAll();
+    try {
+      await NotificationService.scheduleAll();
+    } catch (_) {
+      // A scheduling problem must never stop the app from opening
+    }
   }
 
   // Check if app was launched by tapping a notification (terminated state)
