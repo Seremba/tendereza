@@ -18,6 +18,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
 
   /// Read from pubspec.yaml at runtime, so it always matches the build.
   String _version = '';
+  String _build = '';
 
   @override
   void initState() {
@@ -31,7 +32,12 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
   Future<void> _loadVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
-      if (mounted) setState(() => _version = info.version);
+      if (mounted) {
+        setState(() {
+          _version = info.version;
+          _build = info.buildNumber;
+        });
+      }
     } catch (_) {
       // Leave blank rather than show a wrong number
     }
@@ -52,7 +58,11 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
         return;
       }
       try {
-        await NotificationService.scheduleAll();
+        final lang = ref.read(languageProvider);
+        final hymns = lang == 'en'
+            ? await ref.read(englishHymnsProvider.future)
+            : await ref.read(lugandaHymnsProvider.future);
+        await NotificationService.scheduleAll(hymns: hymns);
       } catch (e) {
         // Don't leave the switch looking "on" when nothing was scheduled
         if (mounted) {
@@ -71,6 +81,26 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
         .setBool('notifications_enabled', value);
 
     if (mounted) setState(() => _notificationsEnabled = value);
+  }
+
+  Future<void> _sendTestReminder() async {
+    try {
+      await NotificationService.sendTest();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Test sent. A second one should follow in about a minute.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Test failed: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _rateApp() async {
@@ -171,7 +201,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(_version.isEmpty ? '' : 'v$_version',
+                        Text(_version.isEmpty ? '' : 'v$_version${_build.isEmpty ? '' : ' ($_build)'}',
                             style:
                                 TextStyle(fontSize: 13, color: dimColor)),
                         const SizedBox(height: 6),
@@ -236,6 +266,17 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           ],
                         ),
                       ),
+                      if (_notificationsEnabled) ...[
+                        Divider(height: 1, indent: 50, color: borderColor),
+                        _SettingsRow(
+                          icon: Icons.notifications_active_outlined,
+                          title: 'Send a test reminder',
+                          titleColor: titleColor,
+                          dimColor: dimColor,
+                          borderColor: borderColor,
+                          onTap: _sendTestReminder,
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 16),

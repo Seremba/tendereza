@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
+import 'data/hymn_repository.dart';
 import 'providers/providers.dart';
 import 'screens/hymn_screen.dart';
 import 'services/notification_service.dart';
@@ -43,7 +44,11 @@ void main() async {
       prefs.getBool('notifications_enabled') ?? false;
   if (notificationsEnabled) {
     try {
-      await NotificationService.scheduleAll();
+      final lang = prefs.getString('language') ?? 'lg';
+      final hymns = lang == 'en'
+          ? await HymnRepository.loadEnglish()
+          : await HymnRepository.loadLuganda();
+      await NotificationService.scheduleAll(hymns: hymns);
     } catch (_) {
       // A scheduling problem must never stop the app from opening
     }

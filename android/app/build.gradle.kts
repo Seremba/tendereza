@@ -47,6 +47,15 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            // flutter_local_notifications breaks when R8 shrinks the release
+            // build ("Missing type parameter"), so shrinking is switched off.
+            // Costs roughly 1 MB; the ProGuard rules below stay for reference.
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

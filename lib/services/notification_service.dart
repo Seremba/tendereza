@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import '../models/hymn.dart';
 
 class NotificationService {
   NotificationService._();
@@ -15,7 +16,7 @@ class NotificationService {
   static const _eveningId   = 102;
 
   // Channel
-  static const _channelId   = 'tendereza_daily_hymns';
+  static const _channelId   = 'tendereza_daily_hymns_v2';
   static const _channelName = 'Daily Hymns';
   static const _channelDesc =
       'Morning, afternoon and evening hymn reminders';
@@ -45,6 +46,12 @@ class NotificationService {
       // Handle taps when app was terminated
       onDidReceiveBackgroundNotificationResponse: _backgroundHandler,
     );
+
+    // Remove the earlier, lower-importance channel (importance can't be
+    // changed once a channel exists, so a new channel id is used instead).
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await android?.deleteNotificationChannel('tendereza_daily_hymns');
   }
 
   /// Request POST_NOTIFICATIONS permission (Android 13+).
@@ -55,24 +62,65 @@ class NotificationService {
     return await android?.requestNotificationsPermission() ?? true;
   }
 
-  /// Schedule all three daily notifications with a fresh random hymn each.
-  /// Call this when the user enables notifications AND on every app launch
-  /// when notifications are enabled (to refresh the random hymn selection).
-  static Future<void> scheduleAll() async {
+  /// Schedule the three daily notifications, each with a random hymn.
+  /// Reads like: "Take a break with Hymn 2: Ka Tukusuute".
+  ///
+  /// Call this when the user enables reminders AND on every app launch while
+  /// they are enabled, so the random hymns are refreshed. Pass the hymn list
+  /// for the language you want the titles in.
+  static Future<void> scheduleAll({List<Hymn> hymns = const []}) async {
     await cancelAll(); // clear stale schedules first
+
+    // Regular hymns only (1–250), so a reminder always opens a real hymn
+    final pool = hymns.where((h) => h.number is int).toList();
+
     await _schedule(id: _morningId,   hour: 7,  minute: 0,
-        title: '🌅 Morning Hymn',
-        body: 'Start your day with a hymn of praise');
+        title: 'Morning Hymn', lead: 'Start your day with', pool: pool);
     await _schedule(id: _afternoonId, hour: 12, minute: 0,
-        title: '☀️ Midday Hymn',
-        body: 'A moment of worship in the middle of your day');
+        title: 'Midday Hymn',  lead: 'Take a break with',   pool: pool);
     await _schedule(id: _eveningId,   hour: 19, minute: 0,
-        title: '🌙 Evening Hymn',
-        body: 'Close your day in song and gratitude');
+        title: 'Evening Hymn', lead: 'End your day with',   pool: pool);
   }
 
   /// Cancel all scheduled notifications.
   static Future<void> cancelAll() => _plugin.cancelAll();
+
+  /// Diagnostic: shows one notification immediately, and schedules a second
+  /// one for about a minute from now. If the first appears but the second
+  /// does not, the problem is scheduling/battery, not notification settings.
+  static Future<void> sendTest() async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: _channelDesc,
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _plugin.show(
+      998,
+      '🎵 Test reminder',
+      'Hymn reminders can appear on this phone.',
+      details,
+      payload: '1',
+    );
+
+    await _plugin.zonedSchedule(
+      999,
+      '⏰ Scheduled test',
+      'This one was scheduled about a minute ago.',
+      tz.TZDateTime.now(tz.local).add(const Duration(minutes: 1)),
+      details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: '1',
+    );
+  }
 
   // ── Private ────────────────────────────────────────────────────────────────
 
@@ -81,23 +129,29 @@ class NotificationService {
     required int hour,
     required int minute,
     required String title,
-    required String body,
+    required String lead,
+    required List<Hymn> pool,
   }) async {
-    // Pick a random hymn number 1–250
-    final hymnNumber = _random.nextInt(250) + 1;
+    // Pick a random hymn (falls back to a bare number if the list is empty)
+    final Hymn? hymn =
+        pool.isEmpty ? null : pool[_random.nextInt(pool.length)];
+    final number = hymn?.number ?? (_random.nextInt(250) + 1);
+    final text = hymn == null
+        ? '$lead Hymn $number'
+        : '$lead Hymn $number: ${hymn.title}';
 
     await _plugin.zonedSchedule(
       id,
       title,
-      '$body — Hymn $hymnNumber',
+      text,
       _nextTime(hour, minute),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
           channelDescription: _channelDesc,
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
+          importance: Importance.high,
+          priority: Priority.high,
           icon: '@mipmap/ic_launcher',
         ),
         iOS: DarwinNotificationDetails(),
@@ -108,7 +162,7 @@ class NotificationService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
-      payload: '$hymnNumber',
+      payload: '$number',
     );
   }
 
