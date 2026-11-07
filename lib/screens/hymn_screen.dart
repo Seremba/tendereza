@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -20,7 +21,8 @@ class HymnScreen extends ConsumerStatefulWidget {
   ConsumerState<HymnScreen> createState() => _HymnScreenState();
 }
 
-class _HymnScreenState extends ConsumerState<HymnScreen> {
+class _HymnScreenState extends ConsumerState<HymnScreen>
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   int _currentIndex = 0;
   bool _isPageControllerReady = false;
@@ -31,6 +33,19 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   bool _showFontButtons = true;
   Timer? _fontButtonTimer;
   bool _isProgrammaticScroll = false; // silences _onScroll during chip-tap scrolls
+
+  // ── Auto-scroll engine ──
+  // Scrolling runs on a ticker so it stays smooth at any speed. Only the
+  // Pause, ✕, end-of-hymn and swipe-to-next paths stop it. Taps and holds
+  // don't; a drag by hand pauses it only while the finger is down.
+  Ticker? _autoTicker;
+  bool _autoRunning = false;   // control bar is showing
+  bool _autoPlaying = false;   // actively moving
+  bool _userDragging = false;  // finger is on the lyrics
+  Duration _lastTick = Duration.zero;
+  // Speed lives in autoScrollSpeedProvider so it is remembered.
+  double get _autoSpeed => ref.read(autoScrollSpeedProvider);
+  static const double _basePixelsPerSecond = 40.0; // at 1.0×, tuned on device
 
   void _showFontButtonsTemporarily() {
     setState(() => _showFontButtons = true);
@@ -43,11 +58,121 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   @override
   void dispose() {
     _fontButtonTimer?.cancel();
+    _autoTicker?.dispose();
     _pageController.dispose();
     for (final sc in _scrollControllers.values) {
       sc.dispose();
     }
     super.dispose();
+  }
+
+  // ── Auto-scroll engine ──────────────────────────────────────────────────
+
+  ScrollController? get _currentScrollController =>
+      _scrollControllers[_currentIndex];
+
+  void _ensureTicker() {
+    _autoTicker ??= createTicker(_onAutoTick);
+  }
+
+  /// Tapping Auto: starts at the remembered speed straight away.
+  void _startAuto() {
+    final ctrl = _currentScrollController;
+    if (ctrl == null || !ctrl.hasClients) return;
+    _ensureTicker();
+    setState(() {
+      _autoRunning = true;
+      _autoPlaying = true;
+    });
+    _lastTick = Duration.zero;
+    if (!_autoTicker!.isActive) _autoTicker!.start();
+  }
+
+  /// Pause / resume. Leaves the control bar showing either way.
+  void _toggleAutoPlaying() {
+    if (!_autoRunning) return;
+    setState(() => _autoPlaying = !_autoPlaying);
+    _lastTick = Duration.zero;
+    if (_autoPlaying && !(_autoTicker?.isActive ?? false)) {
+      _autoTicker!.start();
+    }
+  }
+
+  /// ✕ — stops everything and brings the verse chips back.
+  void _stopAuto() {
+    _autoTicker?.stop();
+    setState(() {
+      _autoRunning = false;
+      _autoPlaying = false;
+    });
+  }
+
+  void _onAutoTick(Duration elapsed) {
+    final ctrl = _currentScrollController;
+    if (ctrl == null || !ctrl.hasClients) {
+      _stopAuto();
+      return;
+    }
+
+    // Pausing while the finger is on the lyrics, or while Pause is set
+    if (!_autoPlaying || _userDragging) {
+      _lastTick = elapsed; // don't count paused time as a jump
+      return;
+    }
+
+    final dt = _lastTick == Duration.zero
+        ? 0.0
+        : (elapsed - _lastTick).inMicroseconds / 1e6;
+    _lastTick = elapsed;
+
+    final step = _basePixelsPerSecond * _autoSpeed * dt;
+    final pos = ctrl.position;
+    final next = (pos.pixels + step).clamp(0.0, pos.maxScrollExtent);
+    ctrl.jumpTo(next);
+
+    // Reached the end of this hymn: stop cleanly
+    if (next >= pos.maxScrollExtent) _stopAuto();
+  }
+
+  /// Dragging the lyrics pauses only while the finger is down.
+  bool _onLyricsScroll(ScrollNotification n) {
+    if (n is ScrollStartNotification && n.dragDetails != null) {
+      _userDragging = true;
+    } else if (n is ScrollEndNotification) {
+      _userDragging = false;
+      _lastTick = Duration.zero; // resume from wherever the drag left off
+    }
+    return false;
+  }
+
+  void _setAutoSpeed(double v) {
+    ref.read(autoScrollSpeedProvider.notifier).setSpeed(v);
+    setState(() {}); // refresh the displayed number
+  }
+
+  /// Speed sheet, opened from the speed number.
+  void _showSpeedSheet(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cs.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _SpeedSheet(
+        initial: _autoSpeed,
+        onChanged: _setAutoSpeed,
+        onStart: () {
+          Navigator.pop(context);
+          if (!_autoRunning) _startAuto();
+        },
+      ),
+    );
+  }
+
+  /// Swiping to another hymn always stops auto-scroll.
+  void _stopAutoForNewHymn() {
+    if (_autoRunning) _stopAuto();
   }
 
   ScrollController _scrollControllerFor(int index) {
@@ -144,6 +269,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
   }
 
   void _onPageChanged(int index, List<Hymn> hymns) {
+    _stopAutoForNewHymn();
     setState(() => _currentIndex = index);
     _activeVerseByPage.remove(index);
     _verseKeysByPage.remove(index);
@@ -382,21 +508,49 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                         ),
                       ),
 
-                      // ── Verse chip bar ──
-                      _VerseNavBar(
-                        verses: currentHymn.verses,
-                        activeIndex: activeVerse,
-                        accent: accent,
-                        badgeBg: badgeBg,
-                        badgeFg: badgeFg,
-                        onTap: (i) {
-                          final current =
-                              _activeVerseByPage[_currentIndex] ?? 0;
-                          final verseCount = currentHymn.verses.length;
-                          final target =
-                              (i == current) ? (current + 1) % verseCount : i;
-                          _scrollToVerse(_currentIndex, target);
-                        },
+                      // ── Verse chips OR auto-scroll bar (never both) ──
+                      // Same fixed height in both modes so the lyrics never jump.
+                      SizedBox(
+                        height: 44,
+                        child: _autoRunning
+                            ? _AutoScrollBar(
+                                speed: _autoSpeed,
+                                playing: _autoPlaying,
+                                accent: accent,
+                                dimColor: dimColor,
+                                onStop: _stopAuto,
+                                onTogglePlay: _toggleAutoPlaying,
+                                onSpeedDown: () => _setAutoSpeed(_autoSpeed - 0.1),
+                                onSpeedUp: () => _setAutoSpeed(_autoSpeed + 0.1),
+                                onSpeedTap: () => _showSpeedSheet(context),
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: _VerseNavBar(
+                                      verses: currentHymn.verses,
+                                      activeIndex: activeVerse,
+                                      accent: accent,
+                                      badgeBg: badgeBg,
+                                      badgeFg: badgeFg,
+                                      onTap: (i) {
+                                        final current =
+                                            _activeVerseByPage[_currentIndex] ?? 0;
+                                        final verseCount = currentHymn.verses.length;
+                                        final target =
+                                            (i == current) ? (current + 1) % verseCount : i;
+                                        _scrollToVerse(_currentIndex, target);
+                                      },
+                                    ),
+                                  ),
+                                  _AutoButton(
+                                    accent: accent,
+                                    speed: _autoSpeed,
+                                    onTap: _startAuto,
+                                  ),
+                                  const SizedBox(width: 12),
+                                ],
+                              ),
                       ),
 
                       // ── PageView ──
@@ -411,7 +565,9 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                                 _verseKeysFor(pageIndex, hymn.verses.length);
                             final scrollCtrl =
                                 _scrollControllerFor(pageIndex);
-                            return SingleChildScrollView(
+                            return NotificationListener<ScrollNotification>(
+                              onNotification: _onLyricsScroll,
+                              child: SingleChildScrollView(
                               controller: scrollCtrl,
                               padding:
                                   const EdgeInsets.fromLTRB(20, 12, 20, 40),
@@ -426,6 +582,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen> {
                                   ),
                                 ),
                               ),
+                            ),
                             );
                           },
                         ),
@@ -756,6 +913,265 @@ class _VerseNavBar extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ── Speed sheet: slider 0.5× to 3.0×, reset, start ──
+class _SpeedSheet extends ConsumerStatefulWidget {
+  final double initial;
+  final ValueChanged<double> onChanged;
+  final VoidCallback onStart;
+
+  const _SpeedSheet({
+    required this.initial,
+    required this.onChanged,
+    required this.onStart,
+  });
+
+  @override
+  ConsumerState<_SpeedSheet> createState() => _SpeedSheetState();
+}
+
+class _SpeedSheetState extends ConsumerState<_SpeedSheet> {
+  late double _value = widget.initial;
+
+  static const double _min = 0.5;
+  static const double _max = 3.0;
+  static const double _defaultSpeed = 1.0;
+
+  void _set(double v) {
+    final snapped = (v.clamp(_min, _max) * 10).round() / 10;
+    setState(() => _value = snapped);
+    widget.onChanged(snapped);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final accent = cs.primary;
+    final dim = cs.onSurface.withValues(alpha: 0.6);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 14, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cs.onSurface.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Auto-scroll speed',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
+                ),
+                Text(
+                  '${_value.toStringAsFixed(1)}×',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: accent,
+                  ),
+                ),
+              ],
+            ),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: accent,
+                inactiveTrackColor: accent.withValues(alpha: 0.2),
+                thumbColor: accent,
+                overlayColor: accent.withValues(alpha: 0.12),
+              ),
+              child: Slider(
+                value: _value,
+                min: _min,
+                max: _max,
+                divisions: 25, // 0.1 steps across 0.5 – 3.0
+                onChanged: _set,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Slower 0.5×', style: TextStyle(fontSize: 12, color: dim)),
+                Text('3.0× Faster', style: TextStyle(fontSize: 12, color: dim)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => _set(_defaultSpeed),
+                  child: Text(
+                    'Reset to ${_defaultSpeed.toStringAsFixed(1)}×',
+                    style: TextStyle(color: accent, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: widget.onStart,
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: const Text('Start auto-scroll'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Auto-scroll button, shown in the chip row when idle ──
+class _AutoButton extends StatelessWidget {
+  final Color accent;
+  final double speed;
+  final VoidCallback onTap;
+
+  const _AutoButton({
+    required this.accent,
+    required this.speed,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: accent.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.swap_vert_rounded, size: 16, color: accent),
+            const SizedBox(width: 4),
+            Text(
+              'Auto ${speed.toStringAsFixed(1)}×',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: accent,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Control bar, shown in place of the chips while scrolling ──
+class _AutoScrollBar extends StatelessWidget {
+  final double speed;
+  final bool playing;
+  final Color accent;
+  final Color dimColor;
+  final VoidCallback onStop;
+  final VoidCallback onTogglePlay;
+  final VoidCallback onSpeedDown;
+  final VoidCallback onSpeedUp;
+  final VoidCallback onSpeedTap;
+
+  const _AutoScrollBar({
+    required this.speed,
+    required this.playing,
+    required this.accent,
+    required this.dimColor,
+    required this.onStop,
+    required this.onTogglePlay,
+    required this.onSpeedDown,
+    required this.onSpeedUp,
+    required this.onSpeedTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: accent.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          children: [
+            // ✕ stop and return to the verse chips
+            IconButton(
+              tooltip: 'Stop auto-scroll',
+              visualDensity: VisualDensity.compact,
+              icon: Icon(Icons.close_rounded, size: 20, color: dimColor),
+              onPressed: onStop,
+            ),
+            const Spacer(),
+            // − speed +
+            IconButton(
+              tooltip: 'Slower',
+              visualDensity: VisualDensity.compact,
+              icon: Icon(Icons.remove, size: 20, color: accent),
+              onPressed: onSpeedDown,
+            ),
+            GestureDetector(
+              onTap: onSpeedTap,
+              child: Text(
+                '${speed.toStringAsFixed(1)}×',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: accent,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Faster',
+              visualDensity: VisualDensity.compact,
+              icon: Icon(Icons.add, size: 20, color: accent),
+              onPressed: onSpeedUp,
+            ),
+            const Spacer(),
+            // Pause / play
+            GestureDetector(
+              onTap: onTogglePlay,
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: accent,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  size: 20,
+                  color: cs.onPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

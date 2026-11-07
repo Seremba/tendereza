@@ -132,6 +132,35 @@ class FontSizeNotifier extends Notifier<double> {
   }
 }
 
+// ─────────────────────────────────────────────
+// AUTO-SCROLL SPEED  (0.5× – 3.0×, remembered)
+// ─────────────────────────────────────────────
+class AutoScrollSpeedNotifier extends Notifier<double> {
+  static const _key = 'autoscroll_speed';
+  static const double min = 0.5;
+  static const double max = 3.0;
+  static const double defaultSpeed = 1.0;
+
+  @override
+  double build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    return prefs.getDouble(_key) ?? defaultSpeed;
+  }
+
+  /// Snaps to 0.1 steps and keeps the value inside the range.
+  void setSpeed(double v) {
+    final snapped = (v.clamp(min, max) * 10).round() / 10;
+    state = snapped;
+    ref.read(sharedPreferencesProvider).setDouble(_key, snapped);
+  }
+
+  void reset() => setSpeed(defaultSpeed);
+}
+
+final autoScrollSpeedProvider =
+    NotifierProvider<AutoScrollSpeedNotifier, double>(
+        AutoScrollSpeedNotifier.new);
+
 final fontSizeProvider =
     NotifierProvider<FontSizeNotifier, double>(FontSizeNotifier.new);
 

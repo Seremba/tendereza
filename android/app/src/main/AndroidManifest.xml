@@ -32,6 +32,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Lets the plugin show scheduled hymn reminders when their time comes -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+
         <!-- Restores scheduled hymn reminders after a reboot or app update -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
