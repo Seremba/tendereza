@@ -66,6 +66,26 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
     super.dispose();
   }
 
+  /// Auto-scroll sings the hymn as a full song: the chorus follows every verse,
+  /// including the last one. Display only, the stored hymn is never changed.
+  List<Verse> _autoSongFlow(List<Verse> verses) {
+    bool isChorus(Verse v) {
+      final l = v.label.toLowerCase();
+      return l.contains('chorus') || l.contains('refrain');
+    }
+
+    final chorus = verses.where(isChorus).firstOrNull;
+    if (chorus == null) return verses; // no chorus, nothing to repeat
+
+    final out = <Verse>[];
+    for (final v in verses) {
+      if (identical(v, chorus)) continue; // placed after each verse instead
+      out.add(v);
+      if (!isChorus(v)) out.add(chorus);  // chorus after every verse
+    }
+    return out;
+  }
+
   // ── Auto-scroll engine ──────────────────────────────────────────────────
 
   ScrollController? get _currentScrollController =>
@@ -561,8 +581,12 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                           itemCount: sorted.length,
                           itemBuilder: (_, pageIndex) {
                             final hymn = sorted[pageIndex];
+                            // Song flow only on the hymn being auto-scrolled
+                            final lyrics = (_autoRunning && pageIndex == _currentIndex)
+                                ? _autoSongFlow(hymn.verses)
+                                : hymn.verses;
                             final verseKeys =
-                                _verseKeysFor(pageIndex, hymn.verses.length);
+                                _verseKeysFor(pageIndex, lyrics.length);
                             final scrollCtrl =
                                 _scrollControllerFor(pageIndex);
                             return NotificationListener<ScrollNotification>(
@@ -574,10 +598,10 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: List.generate(
-                                  hymn.verses.length,
+                                  lyrics.length,
                                   (i) => VerseDisplay(
                                     key: verseKeys[i],
-                                    verse: hymn.verses[i],
+                                    verse: lyrics[i],
                                     fontSize: fontSize,
                                   ),
                                 ),
