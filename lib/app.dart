@@ -228,7 +228,7 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
         scrolledUnderElevation: 0,
         backgroundColor: appTheme == TenderezaTheme.light ||
                 appTheme == TenderezaTheme.sepia
-            ? AlpsColors.navy
+            ? AlpsColors.teal
             : surface,
         foregroundColor: Colors.white,
         centerTitle: false,

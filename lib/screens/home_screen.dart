@@ -79,7 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
           const Padding(
             padding: EdgeInsets.only(right: 8, left: 4),
-            child: Center(child: LanguageToggle()),
+            child: Center(child: LanguageToggle(onBar: true)),
           ),
         ],
       ),
