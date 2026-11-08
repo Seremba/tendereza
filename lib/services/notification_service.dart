@@ -85,43 +85,6 @@ class NotificationService {
   /// Cancel all scheduled notifications.
   static Future<void> cancelAll() => _plugin.cancelAll();
 
-  /// Diagnostic: shows one notification immediately, and schedules a second
-  /// one for about a minute from now. If the first appears but the second
-  /// does not, the problem is scheduling/battery, not notification settings.
-  static Future<void> sendTest() async {
-    const details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDesc,
-        importance: Importance.high,
-        priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
-      ),
-      iOS: DarwinNotificationDetails(),
-    );
-
-    await _plugin.show(
-      998,
-      '🎵 Test reminder',
-      'Hymn reminders can appear on this phone.',
-      details,
-      payload: '1',
-    );
-
-    await _plugin.zonedSchedule(
-      999,
-      '⏰ Scheduled test',
-      'This one was scheduled about a minute ago.',
-      tz.TZDateTime.now(tz.local).add(const Duration(minutes: 1)),
-      details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: '1',
-    );
-  }
-
   // ── Private ────────────────────────────────────────────────────────────────
 
   static Future<void> _schedule({

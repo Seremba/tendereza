@@ -45,7 +45,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
   Duration _lastTick = Duration.zero;
   // Speed lives in autoScrollSpeedProvider so it is remembered.
   double get _autoSpeed => ref.read(autoScrollSpeedProvider);
-  static const double _basePixelsPerSecond = 40.0; // at 1.0×, tuned on device
+  static const double _basePixelsPerSecond = 20.0; // at 1.0×, tuned on device
 
   void _showFontButtonsTemporarily() {
     setState(() => _showFontButtons = true);
@@ -1137,12 +1137,16 @@ class _AutoScrollBar extends StatelessWidget {
             ),
             GestureDetector(
               onTap: onSpeedTap,
-              child: Text(
-                '${speed.toStringAsFixed(1)}×',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: accent,
+              child: Padding(
+                // Clear space either side so the number never touches − or +
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Text(
+                  '${speed.toStringAsFixed(1)}×',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: accent,
+                  ),
                 ),
               ),
             ),

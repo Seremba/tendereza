@@ -83,26 +83,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
     if (mounted) setState(() => _notificationsEnabled = value);
   }
 
-  Future<void> _sendTestReminder() async {
-    try {
-      await NotificationService.sendTest();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Test sent. A second one should follow in about a minute.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Test failed: $e')),
-        );
-      }
-    }
-  }
-
   Future<void> _rateApp() async {
     final review = InAppReview.instance;
     if (await review.isAvailable()) {
@@ -266,17 +246,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                           ],
                         ),
                       ),
-                      if (_notificationsEnabled) ...[
-                        Divider(height: 1, indent: 50, color: borderColor),
-                        _SettingsRow(
-                          icon: Icons.notifications_active_outlined,
-                          title: 'Send a test reminder',
-                          titleColor: titleColor,
-                          dimColor: dimColor,
-                          borderColor: borderColor,
-                          onTap: _sendTestReminder,
-                        ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 16),
