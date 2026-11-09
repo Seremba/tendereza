@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -8,12 +7,6 @@ class NotificationService {
   NotificationService._();
 
   static final _plugin = FlutterLocalNotificationsPlugin();
-  static final _random = Random();
-
-  // Stable IDs — one per daily slot so rescheduling replaces the old one
-  static const _morningId   = 100;
-  static const _afternoonId = 101;
-  static const _eveningId   = 102;
 
   // Channel
   static const _channelId   = 'tendereza_daily_hymns_v2';
@@ -62,24 +55,46 @@ class NotificationService {
     return await android?.requestNotificationsPermission() ?? true;
   }
 
-  /// Schedule the three daily notifications, each with a random hymn.
-  /// Reads like: "Take a break with Hymn 2: Ka Tukusuute".
+  /// Schedule the weekly reminders: seven lines per time of day, one for each
+  /// weekday. Each line is paired with the hymn chosen for it, and the body
+  /// shows that hymn's number and title from the app data.
   ///
-  /// Call this when the user enables reminders AND on every app launch while
-  /// they are enabled, so the random hymns are refreshed. Pass the hymn list
-  /// for the language you want the titles in.
-  static Future<void> scheduleAll({List<Hymn> hymns = const []}) async {
+  /// Call this when the user enables reminders and on every app launch while
+  /// they are enabled. Pass the hymn list for the language you want titles in.
+  static Future<void> scheduleAll({
+    List<Hymn> hymns = const [],
+    String lang = 'en',
+  }) async {
     await cancelAll(); // clear stale schedules first
 
-    // Regular hymns only (1–250), so a reminder always opens a real hymn
     final pool = hymns.where((h) => h.number is int).toList();
 
-    await _schedule(id: _morningId,   hour: 7,  minute: 0,
-        title: 'Morning Hymn', lead: 'Start your day with', pool: pool);
-    await _schedule(id: _afternoonId, hour: 12, minute: 0,
-        title: 'Midday Hymn',  lead: 'Take a break with',   pool: pool);
-    await _schedule(id: _eveningId,   hour: 19, minute: 0,
-        title: 'Evening Hymn', lead: 'End your day with',   pool: pool);
+    final luganda = lang == 'lg';
+    final label = luganda ? 'Oluyimba' : 'Hymn';
+
+    // Evening is still English until its Luganda set is approved
+    final slots = <_Slot>[
+      _Slot(0, 7, 0, luganda ? _morningLuganda : _morningLines),
+      _Slot(1, 12, 0, luganda ? _afternoonLuganda : _afternoonLines),
+      _Slot(2, 20, 0, _eveningLines),
+    ];
+
+    for (final slot in slots) {
+      for (int day = 0; day < 7; day++) {
+        final line = slot.lines[day];
+        await _scheduleWeekly(
+          id: 200 + slot.index * 10 + day,
+          // Index 0 is Sunday, index 6 is Saturday (the seventh day)
+          weekday: day == 0 ? DateTime.sunday : day,
+          hour: slot.hour,
+          minute: slot.minute,
+          text: line.text,
+          hymnNumber: line.hymn,
+          hymn: _findHymn(pool, line.hymn),
+          label: label,
+        );
+      }
+    }
   }
 
   /// Cancel all scheduled notifications.
@@ -87,27 +102,32 @@ class NotificationService {
 
   // ── Private ────────────────────────────────────────────────────────────────
 
-  static Future<void> _schedule({
+  static Hymn? _findHymn(List<Hymn> pool, int number) {
+    for (final h in pool) {
+      if (h.number == number) return h;
+    }
+    return null;
+  }
+
+  static Future<void> _scheduleWeekly({
     required int id,
+    required int weekday,
     required int hour,
     required int minute,
-    required String title,
-    required String lead,
-    required List<Hymn> pool,
+    required String text,
+    required int hymnNumber,
+    required String label,
+    Hymn? hymn,
   }) async {
-    // Pick a random hymn (falls back to a bare number if the list is empty)
-    final Hymn? hymn =
-        pool.isEmpty ? null : pool[_random.nextInt(pool.length)];
-    final number = hymn?.number ?? (_random.nextInt(250) + 1);
-    final text = hymn == null
-        ? '$lead Hymn $number'
-        : '$lead Hymn $number: ${hymn.title}';
+    final body = hymn == null
+        ? '$label $hymnNumber'
+        : '$label $hymnNumber · ${hymn.title}';
 
     await _plugin.zonedSchedule(
       id,
-      title,
       text,
-      _nextTime(hour, minute),
+      body,
+      _nextOccurrence(weekday, hour, minute),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
@@ -119,23 +139,26 @@ class NotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      // Inexact is plenty for a daily hymn reminder and needs no special
-      // exact-alarm permission (which Android 14+ denies by default).
+      // Inexact timing needs no exact-alarm permission. A few minutes' delay is fine.
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-      payload: '$number',
+      // Repeat every week on this weekday at this time
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      payload: '$hymnNumber',
     );
   }
 
-  static tz.TZDateTime _nextTime(int hour, int minute) {
+  /// Next moment that falls on [weekday] (DateTime numbering: Mon=1 … Sun=7)
+  /// at [hour]:[minute], today or later.
+  static tz.TZDateTime _nextOccurrence(int weekday, int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var t = tz.TZDateTime(
-        tz.local, now.year, now.month, now.day, hour, minute);
-    if (t.isBefore(now)) t = t.add(const Duration(days: 1));
+    var t = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    t = t.add(Duration(days: (weekday - now.weekday) % 7));
+    if (t.isBefore(now)) t = t.add(const Duration(days: 7));
     return t;
   }
+
 }
 
 /// Top-level function required by flutter_local_notifications for background taps.
@@ -144,3 +167,69 @@ void _backgroundHandler(NotificationResponse details) {
   // Navigation from background is handled by the app's initialRoute logic
   // using the stored payload — nothing extra needed here.
 }
+
+/// One reminder line and the hymn it opens.
+class _Reminder {
+  final String text;
+  final int hymn;
+  const _Reminder(this.text, this.hymn);
+}
+
+/// One time of day, with its seven lines (index 0 = Sunday, 6 = Saturday).
+class _Slot {
+  final int index;
+  final int hour;
+  final int minute;
+  final List<_Reminder> lines;
+  const _Slot(this.index, this.hour, this.minute, this.lines);
+}
+
+const _morningLines = <_Reminder>[
+  _Reminder("Good morning! Let's fill this beautiful morning with a hymn. ❤️", 51),
+  _Reminder("Up and about? Let's start the day with a beautiful song.", 130),
+  _Reminder("Here’s a lovely hymn to brighten your morning.", 1),
+  _Reminder("Rise and shine! Let's make this morning sweeter with a song. 🎵", 51),
+  _Reminder("Good morning! Take a moment to enjoy a song of praise.", 130),
+  _Reminder("Morning! Let's give thanks to God through song today.", 1),
+  _Reminder("Happy Sabbath! May your morning be full of praise. 🙏", 51),
+];
+
+const _afternoonLines = <_Reminder>[
+  _Reminder("A song can make an ordinary day special. Let's enjoy a hymn together. ❤️", 1),
+  _Reminder("Hello there! Here's a midday hymn to brighten your day. 😊", 51),
+  _Reminder("Even in the middle of a busy day, there's always time for a song. 🎶", 130),
+  _Reminder("Let's pause from the day's work and enjoy a song.", 1),
+  _Reminder("It's noon already! Let's share a moment of praise together.", 51),
+  _Reminder("Taking a lunch break? Here's a hymn to keep your heart cheerful.", 130),
+  _Reminder("Happy Sabbath! May this midday be full of praise. 🎵", 1),
+];
+
+const _eveningLines = <_Reminder>[
+  _Reminder("Before you settle in for the night, enjoy a beautiful hymn to end the day. 🌙", 130),
+  _Reminder("Hello! Hope your day has been good. Here's a hymn to make your evening even better. 😊", 1),
+  _Reminder("Good evening! Here's a lovely hymn to bring peace to your evening. ❤️", 51),
+  _Reminder("The day is winding down. Why not take a moment to enjoy a beautiful hymn? 🎶", 130),
+  _Reminder("Here's a hymn to help you end your day with a heart full of gratitude. 🙏", 1),
+  _Reminder("Good evening! May this song of praise bring joy to your heart tonight.", 51),
+  _Reminder("Happy Sabbath! Let's close this beautiful day with one more hymn. 🌙", 130),
+];
+
+const _morningLuganda = <_Reminder>[
+  _Reminder("Wasuze otya! Ka tutandike olunaku luno olulungi n’oluyimba olw’okutendereza Katonda. ❤️", 51),
+  _Reminder("Ozuukuse bulungi? Ka tutandike olunaku n’oluyimba olulungi. 🎶", 130),
+  _Reminder("Laba oluyimba olulungi olw’okwongera okuleetera enkya yo essanyu.", 1),
+  _Reminder("Zuukuka osanyuke! Ka twongere ku bulungi bw’enkya eno n’oluyimba. 🎵", 51),
+  _Reminder("Wasuze otya! Funa akadde owulirize era oyimbe oluyimba olw’okutendereza Katonda.", 130),
+  _Reminder("Wasuze otya! Ka twebaze Katonda nga tuyita mu nnyimba leero.", 1),
+  _Reminder("Ssabbiiti ennungi! Enkya yo ejjule okutendereza Katonda. 🙏", 51),
+];
+
+const _afternoonLuganda = <_Reminder>[
+  _Reminder("Oluyimba lusobola okufuula olunaku lwa bulijjo olw’enjawulo. Ka tuyimbe wamu. ❤️", 1),
+  _Reminder("Gyebale! Luno luyimba lwa ttuntu olw’okwongera okuleetera olunaku lwo essanyu. 😊", 51),
+  _Reminder("Ne bwe tuba n’emirimu mingi, tusobola okufuna akadde akayimba. 🎶", 130),
+  _Reminder("Ka tuwummuleko ku mirimu egy’olunaku luno n’oluyimba.", 1),
+  _Reminder("Obudde bwa ttuntu butuuse! Ka tutendereze Katonda nga tuyita mu luyimba.", 51),
+  _Reminder("Olinze akadde k’okulya ekyemisana? Luno oluyimba lujja kusanyusa omutima gwo.", 130),
+  _Reminder("Ssabbiiti ennungi! Ttuntu lyo lijjule okutendereza Katonda. 🎵", 1),
+];

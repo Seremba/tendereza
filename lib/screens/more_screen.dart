@@ -58,10 +58,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
         return;
       }
       try {
-        final lang = ref.read(languageProvider);
-        final hymns = lang == 'en'
-            ? await ref.read(englishHymnsProvider.future)
-            : await ref.read(lugandaHymnsProvider.future);
+        final hymns = await ref.read(lugandaHymnsProvider.future);
         await NotificationService.scheduleAll(hymns: hymns);
       } catch (e) {
         // Don't leave the switch looking "on" when nothing was scheduled

@@ -103,7 +103,7 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
         navigatorKey.currentState?.push(
           MaterialPageRoute(
             builder: (_) =>
-                HymnScreen(hymnNumber: widget.initialHymnNumber!),
+                HymnScreen(hymnNumber: widget.initialHymnNumber!, forceLang: 'lg'),
           ),
         );
       });

@@ -44,10 +44,7 @@ void main() async {
       prefs.getBool('notifications_enabled') ?? false;
   if (notificationsEnabled) {
     try {
-      final lang = prefs.getString('language') ?? 'lg';
-      final hymns = lang == 'en'
-          ? await HymnRepository.loadEnglish()
-          : await HymnRepository.loadLuganda();
+      final hymns = await HymnRepository.loadLuganda();
       await NotificationService.scheduleAll(hymns: hymns);
     } catch (_) {
       // A scheduling problem must never stop the app from opening
@@ -83,6 +80,6 @@ void _navigateToHymn(String? payload) {
   final context = navigatorKey.currentContext;
   if (context == null) return;
   Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => HymnScreen(hymnNumber: number)),
+    MaterialPageRoute(builder: (_) => HymnScreen(hymnNumber: number, forceLang: 'lg')),
   );
 }

@@ -75,8 +75,7 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
     final recentNums = ref.watch(recentlyViewedProvider);
 
     // Amber for children's mode, teal for hymns mode
-    final modeAccent =
-        _isChildrenMode ? Colors.amber.shade700 : cs.primary;
+    final modeAccent = cs.primary;
 
     return Column(
       children: [
@@ -228,8 +227,8 @@ class _NumpadScreenState extends ConsumerState<NumpadScreen> {
                     _ModeTab(
                       label: lang == 'lg' ? "Ab'aana" : "Children's",
                       active: _isChildrenMode,
-                      activeColor: Colors.amber.shade700,
-                      activeTextColor: Colors.white,
+                      activeColor: cs.primary,
+                      activeTextColor: cs.onPrimary,
                       onTap: () => _setMode(true),
                     ),
                   ],
@@ -492,7 +491,7 @@ class _YimbaKey extends StatelessWidget {
         exactMatch ?? (results.length == 1 ? results.first : null);
 
     // Children's mode keeps white-on-amber; Hymns mode follows the theme
-    final onKey = isChildrenMode ? Colors.white : cs.onPrimary;
+    final onKey = cs.onPrimary;
 
     return Material(
       color: canOpen

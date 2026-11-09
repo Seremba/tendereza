@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +16,10 @@ import '../widgets/verse_display.dart';
 
 class HymnScreen extends ConsumerStatefulWidget {
   final dynamic hymnNumber;
-  const HymnScreen({super.key, required this.hymnNumber});
+  /// When set (e.g. 'lg' from a reminder), the hymn opens in that language
+  /// regardless of the app's current language setting.
+  final String? forceLang;
+  const HymnScreen({super.key, required this.hymnNumber, this.forceLang});
 
   @override
   ConsumerState<HymnScreen> createState() => _HymnScreenState();
@@ -313,7 +317,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
     }
   }
 
-  void _share(Hymn hymn, String lang) {
+  void _share(Hymn hymn, String? lang) {
     final sb = StringBuffer();
     sb.writeln('${hymn.number}. ${hymn.title}');
     sb.writeln();
@@ -354,7 +358,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
 
   @override
   Widget build(BuildContext context) {
-    final lang = ref.watch(languageProvider);
+    final lang = widget.forceLang ?? ref.watch(languageProvider);
     final fontSize = ref.watch(fontSizeProvider);
     final favourites = ref.watch(favouritesProvider);
     final audioState = ref.watch(hymnAudioProvider);
@@ -617,6 +621,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                         padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                         child: Row(
                           children: [
+                            // Android only: iOS has no MIDI playback
+                            if (!Platform.isIOS) ...[
                             // ── Play / Pause button ──
                             GestureDetector(
                               onTap: hasAudio
@@ -665,6 +671,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                               ),
                             ),
                             const SizedBox(width: 8),
+                            ],
 
                             // ── Prev / Next pill ──
                             Expanded(
