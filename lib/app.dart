@@ -327,7 +327,7 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
       case 'EB Garamond':
         return GoogleFonts.ebGaramondTextTheme();
       default:
-        return GoogleFonts.gentiumPlusTextTheme();
+        return GoogleFonts.poppinsTextTheme();
     }
   }
 }

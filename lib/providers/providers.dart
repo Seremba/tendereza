@@ -67,7 +67,7 @@ class FontFamilyNotifier extends Notifier<String> {
     'Lora',
     'EB Garamond',
   ];
-  static const defaultFamily = 'Gentium Plus';
+  static const defaultFamily = 'Poppins';
 
   @override
   String build() {
