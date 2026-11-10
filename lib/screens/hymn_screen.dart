@@ -979,7 +979,7 @@ class _SpeedSheetState extends ConsumerState<_SpeedSheet> {
 
   static const double _min = 0.5;
   static const double _max = 3.0;
-  static const double _defaultSpeed = 1.0;
+  static const double _defaultSpeed = AutoScrollSpeedNotifier.defaultSpeed;
 
   void _set(double v) {
     final snapped = (v.clamp(_min, _max) * 10).round() / 10;

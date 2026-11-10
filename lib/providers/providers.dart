@@ -139,7 +139,7 @@ class AutoScrollSpeedNotifier extends Notifier<double> {
   static const _key = 'autoscroll_speed';
   static const double min = 0.5;
   static const double max = 3.0;
-  static const double defaultSpeed = 1.0;
+  static const double defaultSpeed = 0.6;
 
   @override
   double build() {
