@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:in_app_review/in_app_review.dart';
 import '../app.dart';
 import '../models/hymn.dart';
@@ -60,7 +61,15 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Keep the screen awake while a hymn is open, so it doesn't dim or lock mid-song
+    WakelockPlus.enable();
+  }
+
+  @override
   void dispose() {
+    WakelockPlus.disable();
     _fontButtonTimer?.cancel();
     _autoTicker?.dispose();
     _pageController.dispose();
@@ -1143,7 +1152,7 @@ class _AutoScrollBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(24),
@@ -1192,8 +1201,8 @@ class _AutoScrollBar extends StatelessWidget {
             GestureDetector(
               onTap: onTogglePlay,
               child: Container(
-                width: 34,
-                height: 34,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: accent,
                   shape: BoxShape.circle,
