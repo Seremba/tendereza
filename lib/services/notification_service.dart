@@ -61,22 +61,15 @@ class NotificationService {
   ///
   /// Call this when the user enables reminders and on every app launch while
   /// they are enabled. Pass the hymn list for the language you want titles in.
-  static Future<void> scheduleAll({
-    List<Hymn> hymns = const [],
-    String lang = 'en',
-  }) async {
+  static Future<void> scheduleAll({List<Hymn> hymns = const []}) async {
     await cancelAll(); // clear stale schedules first
 
     final pool = hymns.where((h) => h.number is int).toList();
 
-    final luganda = lang == 'lg';
-    final label = luganda ? 'Oluyimba' : 'Hymn';
-
-    // Evening is still English until its Luganda set is approved
-    final slots = <_Slot>[
-      _Slot(0, 7, 0, luganda ? _morningLuganda : _morningLines),
-      _Slot(1, 12, 0, luganda ? _afternoonLuganda : _afternoonLines),
-      _Slot(2, 20, 0, _eveningLines),
+    const slots = <_Slot>[
+      _Slot(0, 7, 0, _morningLines),
+      _Slot(1, 12, 0, _afternoonLines),
+      _Slot(2, 19, 0, _eveningLines),
     ];
 
     for (final slot in slots) {
@@ -91,7 +84,6 @@ class NotificationService {
           text: line.text,
           hymnNumber: line.hymn,
           hymn: _findHymn(pool, line.hymn),
-          label: label,
         );
       }
     }
@@ -99,6 +91,32 @@ class NotificationService {
 
   /// Cancel all scheduled notifications.
   static Future<void> cancelAll() => _plugin.cancelAll();
+
+  /// Test only: one reminder shortly from now, through the same scheduled
+  /// path as the real ones. Opens Hymn 1 in Luganda when tapped.
+  static Future<void> scheduleTestIn(Duration delay) async {
+    await _plugin.zonedSchedule(
+      999,
+      'Test reminder',
+      'Hymn 1 · tap to check it opens',
+      tz.TZDateTime.now(tz.local).add(delay),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          _channelName,
+          channelDescription: _channelDesc,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: '1',
+    );
+  }
 
   // ── Private ────────────────────────────────────────────────────────────────
 
@@ -116,12 +134,11 @@ class NotificationService {
     required int minute,
     required String text,
     required int hymnNumber,
-    required String label,
     Hymn? hymn,
   }) async {
     final body = hymn == null
-        ? '$label $hymnNumber'
-        : '$label $hymnNumber · ${hymn.title}';
+        ? 'Hymn $hymnNumber'
+        : 'Hymn $hymnNumber · ${hymn.title}';
 
     await _plugin.zonedSchedule(
       id,
@@ -211,25 +228,5 @@ const _eveningLines = <_Reminder>[
   _Reminder("The day is winding down. Why not take a moment to enjoy a beautiful hymn? 🎶", 130),
   _Reminder("Here's a hymn to help you end your day with a heart full of gratitude. 🙏", 1),
   _Reminder("Good evening! May this song of praise bring joy to your heart tonight.", 51),
-  _Reminder("Happy Sabbath! Let's close this beautiful day with one more hymn. 🌙", 130),
-];
-
-const _morningLuganda = <_Reminder>[
-  _Reminder("Wasuze otya! Ka tutandike olunaku luno olulungi n’oluyimba olw’okutendereza Katonda. ❤️", 51),
-  _Reminder("Ozuukuse bulungi? Ka tutandike olunaku n’oluyimba olulungi. 🎶", 130),
-  _Reminder("Laba oluyimba olulungi olw’okwongera okuleetera enkya yo essanyu.", 1),
-  _Reminder("Zuukuka osanyuke! Ka twongere ku bulungi bw’enkya eno n’oluyimba. 🎵", 51),
-  _Reminder("Wasuze otya! Funa akadde owulirize era oyimbe oluyimba olw’okutendereza Katonda.", 130),
-  _Reminder("Wasuze otya! Ka twebaze Katonda nga tuyita mu nnyimba leero.", 1),
-  _Reminder("Ssabbiiti ennungi! Enkya yo ejjule okutendereza Katonda. 🙏", 51),
-];
-
-const _afternoonLuganda = <_Reminder>[
-  _Reminder("Oluyimba lusobola okufuula olunaku lwa bulijjo olw’enjawulo. Ka tuyimbe wamu. ❤️", 1),
-  _Reminder("Gyebale! Luno luyimba lwa ttuntu olw’okwongera okuleetera olunaku lwo essanyu. 😊", 51),
-  _Reminder("Ne bwe tuba n’emirimu mingi, tusobola okufuna akadde akayimba. 🎶", 130),
-  _Reminder("Ka tuwummuleko ku mirimu egy’olunaku luno n’oluyimba.", 1),
-  _Reminder("Obudde bwa ttuntu butuuse! Ka tutendereze Katonda nga tuyita mu luyimba.", 51),
-  _Reminder("Olinze akadde k’okulya ekyemisana? Luno oluyimba lujja kusanyusa omutima gwo.", 130),
-  _Reminder("Ssabbiiti ennungi! Ttuntu lyo lijjule okutendereza Katonda. 🎵", 1),
+  _Reminder("The Sabbath is over. Let’s close it with a song of praise. 🌙", 130),
 ];

@@ -1,12 +1,12 @@
-# ── flutter_local_notifications (uses Gson internally) ─────────────────
-# R8 strips the generic type information Gson reads at runtime. That is what
-# produces "RuntimeException: Missing type parameter" in release builds
-# (debug builds are not shrunk, so they hide the problem).
+# ── flutter_local_notifications (reminders) ────────────────────────────
+# R8 removes the generic type information that the plugin's Gson code reads
+# at runtime. Without these rules the release build fails with
+# "Missing type parameter" and reminders never appear.
 
 -keepattributes Signature
 -keepattributes *Annotation*
 
-# Retain generic signatures of TypeToken and its subclasses
+# Generic type tokens used by Gson
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
@@ -20,5 +20,5 @@
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
-# The notifications plugin's own classes
+# The notifications plugin's own classes, including the scheduled and boot receivers
 -keep class com.dexterous.** { *; }
