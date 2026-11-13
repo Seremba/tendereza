@@ -80,26 +80,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
     if (mounted) setState(() => _notificationsEnabled = value);
   }
 
-  Future<void> _testReminderSoon() async {
-    try {
-      await NotificationService.scheduleTestIn(const Duration(minutes: 1));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Test set. Lock your phone. It may take a few minutes to arrive.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Test failed: $e')),
-        );
-      }
-    }
-  }
-
   Future<void> _rateApp() async {
     final review = InAppReview.instance;
     if (await review.isAvailable()) {
@@ -266,24 +246,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
-                  if (_notificationsEnabled) ...[
-                    _SettingsCard(
-                      surfaceColor: surfaceColor,
-                      borderColor: borderColor,
-                      children: [
-                        _SettingsRow(
-                          icon: Icons.notifications_active_outlined,
-                          title: 'Test a reminder in 1 minute',
-                          titleColor: titleColor,
-                          dimColor: dimColor,
-                          borderColor: borderColor,
-                          onTap: _testReminderSoon,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
 
                   // ── Support ──
                   _SectionLabel(label: 'Support', dimColor: dimColor),

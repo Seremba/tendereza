@@ -92,32 +92,6 @@ class NotificationService {
   /// Cancel all scheduled notifications.
   static Future<void> cancelAll() => _plugin.cancelAll();
 
-  /// Test only: one reminder shortly from now, through the same scheduled
-  /// path as the real ones. Opens Hymn 1 in Luganda when tapped.
-  static Future<void> scheduleTestIn(Duration delay) async {
-    await _plugin.zonedSchedule(
-      999,
-      'Test reminder',
-      'Hymn 1 · tap to check it opens',
-      tz.TZDateTime.now(tz.local).add(delay),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channelId,
-          _channelName,
-          channelDescription: _channelDesc,
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: '1',
-    );
-  }
-
   // ── Private ────────────────────────────────────────────────────────────────
 
   static Hymn? _findHymn(List<Hymn> pool, int number) {
