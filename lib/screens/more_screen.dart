@@ -59,7 +59,11 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
       }
       try {
         final hymns = await ref.read(lugandaHymnsProvider.future);
-        await NotificationService.scheduleAll(hymns: hymns);
+        await NotificationService.scheduleAll(
+          hymns: hymns,
+          prefs: ref.read(sharedPreferencesProvider),
+          force: true,
+        );
       } catch (e) {
         // Don't leave the switch looking "on" when nothing was scheduled
         if (mounted) {

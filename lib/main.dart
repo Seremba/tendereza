@@ -45,7 +45,7 @@ void main() async {
   if (notificationsEnabled) {
     try {
       final hymns = await HymnRepository.loadLuganda();
-      await NotificationService.scheduleAll(hymns: hymns);
+      await NotificationService.scheduleAll(hymns: hymns, prefs: prefs);
     } catch (_) {
       // A scheduling problem must never stop the app from opening
     }
