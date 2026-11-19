@@ -533,8 +533,8 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                                 currentHymn.englishTitle!,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  color: dimColor,
+                                  fontSize: 11,
+                                  color: isLightTheme ? const Color(0xFF9A8A76) : dimColor,
                                   height: 1.4,
                                 ),
                               ),
@@ -729,9 +729,9 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                                                 : 'Hymn ${currentHymn.number}',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: titleColor,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w400,
+                                          color: isLightTheme ? const Color(0xFF2C6E59) : titleColor,
                                         ),
                                       ),
                                     ),
@@ -934,12 +934,15 @@ class _VerseNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final activeText = Color.alphaBlend(Colors.black.withValues(alpha: 0.2), accent);
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final activeText = isLight
+        ? const Color(0xFF2C6E59)
+        : Color.alphaBlend(Colors.black.withValues(alpha: 0.2), accent);
     return SizedBox(
       height: 44,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         itemCount: verses.length,
         itemBuilder: (_, i) {
           final isActive = i == activeIndex;
@@ -947,23 +950,27 @@ class _VerseNavBar extends StatelessWidget {
             onTap: () => onTap(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 8),
-              width: 36,
-              height: 36,
+              margin: const EdgeInsets.only(right: 6),
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isActive ? accent.withValues(alpha: 0.14) : Colors.transparent,
                 border: Border.all(
-                  color: isActive ? accent.withValues(alpha: 0.35) : cs.outline,
+                  color: isActive
+                      ? accent.withValues(alpha: 0.35)
+                      : (isLight ? const Color(0xFFDDD5C9) : cs.outline),
                 ),
               ),
               child: Center(
                 child: Text(
                   _shortLabel(verses[i].label),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? activeText : cs.onSurface.withValues(alpha: 0.55),
+                    color: isActive
+                        ? activeText
+                        : (isLight ? const Color(0xFF8A7D6E) : cs.onSurface.withValues(alpha: 0.55)),
                   ),
                 ),
               ),
@@ -1123,7 +1130,9 @@ class _AutoButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w400,
-            color: accent.withValues(alpha: 0.8),
+            color: Theme.of(context).brightness == Brightness.light
+                ? const Color(0xFF6E8F84)
+                : accent.withValues(alpha: 0.8),
           ),
         ),
       ),

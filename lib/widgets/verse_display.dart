@@ -51,7 +51,9 @@ class VerseDisplay extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: isChorus
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                  : lyricColor != null
+                      ? const Color(0xFF2C5E4A)
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.45),
               letterSpacing: 0.6,
             ),
           ),
