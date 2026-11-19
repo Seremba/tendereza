@@ -4,11 +4,14 @@ import '../models/hymn.dart';
 class VerseDisplay extends StatelessWidget {
   final Verse verse;
   final double fontSize;
+  /// Optional text colour. Null uses the theme's text colour.
+  final Color? lyricColor;
 
   const VerseDisplay({
-    super.key, // key forwarded to root widget — required for Scrollable.ensureVisible
+    super.key,
     required this.verse,
     required this.fontSize,
+    this.lyricColor,
   });
 
   bool get _isChorus =>
@@ -19,6 +22,7 @@ class VerseDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isChorus = _isChorus;
+    final textColor = lyricColor ?? theme.colorScheme.onSurface;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -40,7 +44,6 @@ class VerseDisplay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // FIX 1: label also selectable
           SelectableText(
             verse.label,
             style: TextStyle(
@@ -53,13 +56,13 @@ class VerseDisplay extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          // FIX 1: lyrics selectable
           SelectableText(
             verse.lines,
             style: TextStyle(
               fontSize: fontSize,
               height: 1.75,
-              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w500,
+              color: textColor,
               fontStyle: isChorus ? FontStyle.italic : FontStyle.normal,
             ),
           ),

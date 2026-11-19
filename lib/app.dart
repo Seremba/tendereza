@@ -148,7 +148,7 @@ class _SdaHymnalAppState extends ConsumerState<SdaHymnalApp> {
 
     switch (appTheme) {
       case TenderezaTheme.light:
-        bg         = AlpsColors.lightBg;
+        bg         = const Color(0xFFFFFFFF); // pure white page
         surface    = AlpsColors.lightSurface;
         surface2   = AlpsColors.lightSurface2;
         text       = AlpsColors.lightText;

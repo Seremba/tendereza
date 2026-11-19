@@ -386,9 +386,12 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
         : ref.watch(lugandaHymnsProvider);
 
     final bg = Theme.of(context).scaffoldBackgroundColor;
+    // Light theme uses the approved warm tones; other themes keep theme colours
+    final isLightTheme = appTheme == TenderezaTheme.light;
+    final headerColor = isLightTheme ? const Color(0xFF3A3530) : cs.onSurface;
+    final lyricColor = isLightTheme ? const Color(0xFF221D18) : null;
     final titleColor = cs.onSurface;
     final dimColor = cs.onSurface.withValues(alpha: 0.5);
-    final surfaceColor = cs.surface;
     final badgeBg = cs.onSurface.withValues(alpha: 0.1);
     final badgeFg = cs.onSurface.withValues(alpha: 0.6);
 
@@ -492,27 +495,35 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                         padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
                         child: Column(
                           children: [
-                            // Number
-                            Text(
-                              '${currentHymn.number}',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: titleColor,
-                                height: 1.1,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            // Luganda / primary title
-                            Text(
-                              currentHymn.title,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: titleColor,
-                                height: 1.3,
-                              ),
+                            // Number and title on one line, same size and weight
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '${currentHymn.number}',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w600,
+                                    color: headerColor,
+                                    height: 1.1,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    currentHymn.title,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w600,
+                                      color: headerColor,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             // English title — only shown on Luganda side
                             if (lang == 'lg' &&
@@ -576,12 +587,14 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                                       },
                                     ),
                                   ),
-                                  _AutoButton(
-                                    accent: accent,
-                                    speed: _autoSpeed,
-                                    onTap: _startAuto,
-                                  ),
-                                  const SizedBox(width: 12),
+                                  if (ref.watch(autoScrollEnabledProvider)) ...[
+                                    _AutoButton(
+                                      accent: accent,
+                                      speed: _autoSpeed,
+                                      onTap: _startAuto,
+                                    ),
+                                    const SizedBox(width: 12),
+                                  ],
                                 ],
                               ),
                       ),
@@ -616,6 +629,7 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                                     key: verseKeys[i],
                                     verse: lyrics[i],
                                     fontSize: fontSize,
+                                    lyricColor: lyricColor,
                                   ),
                                 ),
                               ),
@@ -646,11 +660,11 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                                 decoration: BoxDecoration(
                                   color: isThisPlaying
                                       ? accent.withValues(alpha: 0.15)
-                                      : surfaceColor,
+                                      : Colors.transparent,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: hasAudio
-                                        ? accent.withValues(alpha: 0.5)
+                                        ? accent.withValues(alpha: 0.35)
                                         : accent.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
@@ -686,8 +700,9 @@ class _HymnScreenState extends ConsumerState<HymnScreen>
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: surfaceColor,
+                                  color: Colors.transparent,
                                   borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(color: accent.withValues(alpha: 0.35)),
                                 ),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 6),
@@ -895,8 +910,8 @@ class _VerseNavBar extends StatelessWidget {
   final List<Verse> verses;
   final int activeIndex;
   final Color accent;
-  final Color badgeBg;
-  final Color badgeFg;
+  final Color badgeBg;   // kept so call sites don't change; not used
+  final Color badgeFg;   // kept so call sites don't change; not used
   final void Function(int) onTap;
 
   const _VerseNavBar({
@@ -918,6 +933,8 @@ class _VerseNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final activeText = Color.alphaBlend(Colors.black.withValues(alpha: 0.2), accent);
     return SizedBox(
       height: 44,
       child: ListView.builder(
@@ -926,7 +943,6 @@ class _VerseNavBar extends StatelessWidget {
         itemCount: verses.length,
         itemBuilder: (_, i) {
           final isActive = i == activeIndex;
-          final shortLabel = _shortLabel(verses[i].label);
           return GestureDetector(
             onTap: () => onTap(i),
             child: AnimatedContainer(
@@ -936,17 +952,18 @@ class _VerseNavBar extends StatelessWidget {
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isActive ? accent : badgeBg,
+                color: isActive ? accent.withValues(alpha: 0.14) : Colors.transparent,
+                border: Border.all(
+                  color: isActive ? accent.withValues(alpha: 0.35) : cs.outline,
+                ),
               ),
               child: Center(
                 child: Text(
-                  shortLabel,
+                  _shortLabel(verses[i].label),
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isActive
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : badgeFg,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                    color: isActive ? activeText : cs.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
               ),
@@ -1096,26 +1113,18 @@ class _AutoButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: accent.withValues(alpha: 0.5)),
+          border: Border.all(color: accent.withValues(alpha: 0.25)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.swap_vert_rounded, size: 16, color: accent),
-            const SizedBox(width: 4),
-            Text(
-              'Auto ${speed.toStringAsFixed(1)}×',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: accent,
-              ),
-            ),
-          ],
+        child: Text(
+          '▶ Auto ${speed.toStringAsFixed(1)}×',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w400,
+            color: accent.withValues(alpha: 0.8),
+          ),
         ),
       ),
     );
@@ -1224,7 +1233,7 @@ class _AutoScrollBar extends StatelessWidget {
 // ── Meta line: Doh is X · CH 73 · Composer ──
 class _MetaLine extends StatelessWidget {
   final Hymn hymn;
-  final Color accent;
+  final Color accent; // kept so call sites don't change; not used
   final Color dimColor;
 
   const _MetaLine({
@@ -1235,35 +1244,27 @@ class _MetaLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final parts = <InlineSpan>[];
+    final muted = dimColor.withValues(alpha: 0.55);
     final sep = TextSpan(
       text: '  ·  ',
       style: TextStyle(color: dimColor.withValues(alpha: 0.3)),
     );
+    final parts = <InlineSpan>[];
 
     if (hymn.key != null) {
-      parts.add(TextSpan(
-        children: [
-          TextSpan(
-            text: 'Doh is ',
-            style: TextStyle(color: dimColor.withValues(alpha: 0.55)),
-          ),
-          TextSpan(
-            text: hymn.key,
-            style: TextStyle(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+      parts.add(TextSpan(text: 'Doh is ${hymn.key}'));
+    }
+    if (hymn.timeSignature != null) {
+      if (parts.isNotEmpty) parts.add(sep);
+      parts.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: _TimeSignature(hymn.timeSignature!, color: muted),
       ));
     }
-
     if (hymn.bookSource != null) {
       if (parts.isNotEmpty) parts.add(sep);
       parts.add(TextSpan(text: hymn.bookSource!));
     }
-
     if (hymn.composer != null) {
       if (parts.isNotEmpty) parts.add(sep);
       parts.add(TextSpan(text: hymn.composer!));
@@ -1274,10 +1275,39 @@ class _MetaLine extends StatelessWidget {
       text: TextSpan(
         style: TextStyle(
           fontSize: 11,
-          color: dimColor.withValues(alpha: 0.55),
+          fontWeight: FontWeight.w400,
+          color: muted,
         ),
         children: parts,
       ),
+    );
+  }
+}
+
+/// Time signature written as one number over the other, with no line between them.
+class _TimeSignature extends StatelessWidget {
+  final String value; // e.g. "4/4" or "3/4"
+  final Color color;
+
+  const _TimeSignature(this.value, {required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = value.split('/');
+    final top = parts.first.trim();
+    final bottom = parts.length > 1 ? parts[1].trim() : '';
+    final style = TextStyle(
+      fontSize: 11,
+      height: 1.0,
+      fontWeight: FontWeight.w400,
+      color: color,
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(top, style: style),
+        Text(bottom, style: style),
+      ],
     );
   }
 }

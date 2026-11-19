@@ -56,6 +56,9 @@ class Hymn {
   /// Book source reference e.g. "CH 73"
   final String? bookSource;
 
+  /// Time signature as written in the book, e.g. "4/4" or "3/4"
+  final String? timeSignature;
+
   final String firstLine;
   final List<Verse> verses;
   final HymnHistory? history;
@@ -67,6 +70,7 @@ class Hymn {
     this.englishTitle,
     this.composer,
     this.bookSource,
+    this.timeSignature,
     required this.firstLine,
     required this.verses,
     this.history,
@@ -78,7 +82,7 @@ class Hymn {
 
   /// True when at least one piece of metadata is available to display
   bool get hasMetadata =>
-      key != null || composer != null || bookSource != null;
+      key != null || timeSignature != null || composer != null || bookSource != null;
 
   factory Hymn.fromJson(Map<String, dynamic> json) => Hymn(
         number:       json['number'],
@@ -87,6 +91,7 @@ class Hymn {
         englishTitle: json['english_title'] as String?,
         composer:     json['composer']      as String?,
         bookSource:   json['book_source']   as String?,
+        timeSignature: json['time_signature'] as String?,
         firstLine:    json['first_line']    as String,
         verses: (json['verses'] as List)
             .map((v) => Verse.fromJson(v as Map<String, dynamic>))
@@ -103,6 +108,7 @@ class Hymn {
         if (englishTitle != null) 'english_title': englishTitle,
         if (composer != null)     'composer':      composer,
         if (bookSource != null)   'book_source':   bookSource,
+        if (timeSignature != null) 'time_signature': timeSignature,
         'first_line':             firstLine,
         'verses': verses.map((v) => v.toJson()).toList(),
         if (history != null) 'history': history!.toJson(),

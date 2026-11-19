@@ -161,6 +161,25 @@ final autoScrollSpeedProvider =
     NotifierProvider<AutoScrollSpeedNotifier, double>(
         AutoScrollSpeedNotifier.new);
 
+// ─────────────────────────────────────────────
+// AUTO-SCROLL ON/OFF  (off by default, set in More → Settings)
+// ─────────────────────────────────────────────
+class AutoScrollEnabledNotifier extends Notifier<bool> {
+  static const _key = 'autoscroll_enabled';
+
+  @override
+  bool build() => ref.read(sharedPreferencesProvider).getBool(_key) ?? false;
+
+  void setEnabled(bool value) {
+    state = value;
+    ref.read(sharedPreferencesProvider).setBool(_key, value);
+  }
+}
+
+final autoScrollEnabledProvider =
+    NotifierProvider<AutoScrollEnabledNotifier, bool>(
+        AutoScrollEnabledNotifier.new);
+
 final fontSizeProvider =
     NotifierProvider<FontSizeNotifier, double>(FontSizeNotifier.new);
 
